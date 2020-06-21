@@ -1,0 +1,12 @@
+[package]
+name = "streaker"
+version = "0.1.0"
+authors = ["Boy Maas <boy.maas@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+warp = "0.2.3"
+maud = "0.22.0"
+tokio = { version = "0.2", features = ["fs", "stream", "sync", "time", "macros"] }
