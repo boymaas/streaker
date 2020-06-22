@@ -1,0 +1,106 @@
+#index {
+    h1.streak-program {
+        margin-top: 20px;
+        text-align: center;
+        span:first-child {
+            font-weight: 800;
+        }
+        font-size: 38.4px;
+        color: #FFFFFF;
+        letter-spacing: 6.65px;
+        font-weight: 300;
+    }
+
+    p.spots-remaining {
+        margin-top: 12px;
+        text-align: center;
+        font-size: 12px;
+        color: #FFFFFF;
+        letter-spacing: 1.8px;
+    }
+
+    h2.earn {
+        margin-top: 42px;
+        font-size: 24px;
+        color: #96C11F;
+        letter-spacing: 2.07px;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    p.how {
+        margin-top: 12px;
+        font-family: OpenSans-BoldItalic;
+        font-size: 12px;
+        color: #FFFFFF;
+        letter-spacing: 0.24px;
+        text-align: center;
+    }
+
+    ul.steps {
+        width: 180px; 
+        margin: 52px auto;
+        li {
+            font-weight: 300;
+            font-size: 19.2px;
+            color: #C5A6FF;
+            letter-spacing: 2.88px;
+            padding-bottom: 32px;
+            padding-left: 32px;
+        }
+
+        li:nth-child(1) {
+            background: url(/static/img/1.svg) no-repeat;
+        }
+
+        li:nth-child(2) {
+            background: url(/static/img/2.svg) no-repeat;
+        }
+
+        li:nth-child(3) {
+            background: url(/static/img/3.svg) no-repeat;
+        }
+    }
+
+
+    .call-to-action {
+        text-align: center;
+        button {
+            background: #96C11F;
+            border-radius: 35px;
+            font-size: 38.4px;
+            font-weight: 800;
+            color: #230660;
+            letter-spacing: 6.65px;
+            text-align: center;
+            padding: 12px 50px;
+            margin: -26px auto;
+            border: none;
+        }
+
+        a.returning-user {
+            display: inline-block;
+            margin-top: 35px;
+            font-size: 12px;
+            color: #FFFFFF;
+            letter-spacing: 1.8px;
+        }
+    }
+
+    .instant-cashout {
+        margin-top: 120px;
+        height: 150px;
+
+        h2 {
+            font-weight: 300;
+            font-size: 13.27px;
+            color: #C5A6FF;
+            letter-spacing: 4.86px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        background: url("/static/img/eth-logo.svg") no-repeat;
+        background-position: center;
+    }
+}

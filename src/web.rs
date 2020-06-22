@@ -12,7 +12,7 @@ fn render_html(html: maud::PreEscaped<String>) -> impl warp::reply::Reply {
 pub async fn start() {
     let _log = warp::log("streaker");
 
-    // Match any request and return hello world!
+    // Match any request
     let index = warp::get()
         .and(warp::path::end())
         .map(index::page)
