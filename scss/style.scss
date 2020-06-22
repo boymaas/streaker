@@ -1,8 +1,12 @@
 @import "reset";
 @import "grid";
 
+$background: #250561;
+$green: #BBFF00;
+
 body {
-    background: #250561;
+    background: url(/static/img/background.jpg) no-repeat center top fixed;
+    background-color: $background;
     color: #FFFFFF;
     font-family: 'Open Sans', sans-serif;
 }

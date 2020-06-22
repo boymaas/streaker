@@ -405,7 +405,8 @@ textarea {
   }
 }
 body {
-  background: #250561;
+  background: url(/static/img/background.jpg) no-repeat center top fixed;
+  background-color: #250561;
   color: #FFFFFF;
   font-family: "Open Sans", sans-serif;
 }
@@ -432,7 +433,7 @@ body {
 }
 
 #index h1.streak-program {
-  margin-top: 20px;
+  margin-top: 40px;
   text-align: center;
   font-size: 38.4px;
   color: #FFFFFF;
@@ -450,9 +451,9 @@ body {
   letter-spacing: 1.8px;
 }
 #index h2.earn {
-  margin-top: 42px;
-  font-size: 24px;
-  color: #96C11F;
+  margin-top: 62px;
+  font-size: 28px;
+  color: #BBFF00;
   letter-spacing: 2.07px;
   text-align: center;
   font-weight: 800;
@@ -467,7 +468,7 @@ body {
 }
 #index ul.steps {
   width: 180px;
-  margin: 52px auto;
+  margin: 82px auto;
 }
 #index ul.steps li {
   font-weight: 300;
@@ -490,16 +491,21 @@ body {
   text-align: center;
 }
 #index .call-to-action button {
-  background: #96C11F;
-  border-radius: 35px;
-  font-size: 38.4px;
-  font-weight: 800;
+  background: #BBFF00;
+  border-radius: 55px;
+  font-size: 48.4px;
+  font-weight: 900;
   color: #230660;
   letter-spacing: 6.65px;
   text-align: center;
-  padding: 12px 50px;
+  padding: 22px 80px;
   margin: -26px auto;
-  border: none;
+  border: solid 2px #250561;
+  transition: background-color 0.5s ease-in;
+}
+#index .call-to-action button:hover {
+  background-color: yellow;
+  border: solid 2px white;
 }
 #index .call-to-action a.returning-user {
   display: inline-block;
