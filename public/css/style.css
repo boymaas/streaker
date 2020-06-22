@@ -432,6 +432,11 @@ body {
   text-align: right;
 }
 
+#header img {
+  width: 93px;
+  height: 40px;
+}
+
 #index h1.streak-program {
   margin-top: 40px;
   text-align: center;
