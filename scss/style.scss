@@ -35,7 +35,15 @@ body {
 }
 
 #header {
-    img { width: 93px; height: 40px }
+    #logo {
+        h1 {
+            display: block;
+            width: 93px; 
+            height: 40px;
+            background: url("/static/img/logo.svg") no-repeat;
+            span { display: none; }
+        }
+    }
 }
 
 

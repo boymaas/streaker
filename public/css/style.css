@@ -432,9 +432,14 @@ body {
   text-align: right;
 }
 
-#header img {
+#header #logo h1 {
+  display: block;
   width: 93px;
   height: 40px;
+  background: url("/static/img/logo.png") no-repeat;
+}
+#header #logo h1 span {
+  display: none;
 }
 
 #index h1.streak-program {

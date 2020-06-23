@@ -9,8 +9,8 @@ pub fn page() -> maud::PreEscaped<String> {
         body id="index" {
             div class="container" {
                 div id="header" class="grid thirds" {
-                    div id="col logo" {
-                        img src="/static/img/logo.svg";
+                    div class="col" id="logo" {
+                        h1 { span { "OPES Unite Streak Program" } }
                     }
                     div class="bigger filler" {
                     }
