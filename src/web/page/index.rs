@@ -1,11 +1,10 @@
 use maud::html;
 
+use crate::web::page::components::{footer, header};
+
 pub fn page() -> maud::PreEscaped<String> {
     html! {
-        head {
-            link rel="stylesheet" type="text/css" href="/static/css/style.css";
-            link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet";
-        }
+        (header(None))
         body id="index" {
             div class="container" {
                 div id="header" class="grid thirds" {
@@ -48,36 +47,7 @@ pub fn page() -> maud::PreEscaped<String> {
 
             }
 
-            div id="footer"  {
-                div class="container grid thirds" {
-                    div class="contact col" {
-                        h3 { span {} "Contact" }
-                        ul {
-                            li {
-                                a href="contact@qrcodes.io" { "contact@qrcodes.io" }
-                            }
-                        }
-                    }
-                    div class="col" {
-                    }
-                    div class="information col" {
-                        h3 { span {} "Information" }
-
-                        ul {
-                            li {
-                                a href="/about-us" { "About us" }
-                            }
-
-                            li {
-                                a href="/end-user-agreement" { "End User Agreement" }
-                            }
-                        }
-                    }
-                }
-            }
-            div id="copyright" {
-                "Copyright 2020 - OPES Unite"
-            }
+            (footer())
         }
     }
 }

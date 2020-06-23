@@ -1,5 +1,5 @@
 #![feature(proc_macro_hygiene)]
-#![deny(warnings)]
+// #![deny(warnings)]
 
 mod web;
 
