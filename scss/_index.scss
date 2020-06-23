@@ -1,23 +1,4 @@
 #index {
-    h1.streak-program {
-        margin-top: 40px;
-        text-align: center;
-        span:first-child {
-            font-weight: 800;
-        }
-        font-size: 38.4px;
-        color: #FFFFFF;
-        letter-spacing: 6.65px;
-        font-weight: 300;
-    }
-
-    p.spots-remaining {
-        margin-top: 12px;
-        text-align: center;
-        font-size: 12px;
-        color: #FFFFFF;
-        letter-spacing: 1.8px;
-    }
 
     h2.earn {
         margin-top: 62px;
@@ -43,7 +24,7 @@
         li {
             font-weight: 300;
             font-size: 19.2px;
-            color: #C5A6FF;
+            color: $purple;
             letter-spacing: 2.88px;
             padding-bottom: 32px;
             padding-left: 32px;
@@ -65,7 +46,7 @@
 
     .call-to-action {
         text-align: center;
-        button {
+        a.button {
             background: $green;
             border-radius: 55px;
             font-size: 48.4px;
@@ -73,10 +54,12 @@
             color: #230660;
             letter-spacing: 6.65px;
             text-align: center;
-            padding: 22px 80px;
+            padding: 16px 80px;
             margin: -26px auto;
             border: solid 2px $background;
+            text-decoration: none;
 
+            cursor: pointer;
 
             transition: background-color 0.5s ease-in;
 
@@ -103,7 +86,7 @@
         h2 {
             font-weight: 300;
             font-size: 13.27px;
-            color: #C5A6FF;
+            color: $purple;
             letter-spacing: 4.86px;
             text-align: center;
             text-transform: uppercase;

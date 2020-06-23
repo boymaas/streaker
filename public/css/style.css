@@ -416,22 +416,13 @@ body {
   margin: 20px auto;
 }
 
-.conversion-rate > span:nth-child(1) {
-  display: block;
-  font-size: 24px;
-  font-weight: 600;
-  color: #FFFFFF;
-  letter-spacing: 3.6px;
-  text-align: right;
-}
-.conversion-rate > span:nth-child(2) {
-  display: block;
-  font-size: 9.6px;
-  color: #C5A6FF;
-  letter-spacing: 2.14px;
-  text-align: right;
+.content {
+  min-height: 600px;
 }
 
+#header {
+  position: relative;
+}
 #header #logo h1 {
   display: block;
   width: 93px;
@@ -441,8 +432,31 @@ body {
 #header #logo h1 span {
   display: none;
 }
+#header .conversion-rate > span:nth-child(1) {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  letter-spacing: 3.6px;
+  text-align: right;
+}
+#header .conversion-rate > span:nth-child(2) {
+  display: block;
+  font-size: 9.6px;
+  color: #C5A6FF;
+  letter-spacing: 2.14px;
+  text-align: right;
+}
+#header #mobile-with-opes-screenshot {
+  width: 218px;
+  height: 486px;
+  position: absolute;
+  right: -110px;
+  top: 120px;
+  background: url(/static/img/mobile-with-opes-screenshot.png) no-repeat;
+}
 
-#index h1.streak-program {
+.streak-program h1 {
   margin-top: 40px;
   text-align: center;
   font-size: 38.4px;
@@ -450,16 +464,17 @@ body {
   letter-spacing: 6.65px;
   font-weight: 300;
 }
-#index h1.streak-program span:first-child {
+.streak-program h1 span:first-child {
   font-weight: 800;
 }
-#index p.spots-remaining {
+.streak-program p {
   margin-top: 12px;
   text-align: center;
   font-size: 12px;
   color: #FFFFFF;
   letter-spacing: 1.8px;
 }
+
 #index h2.earn {
   margin-top: 62px;
   font-size: 28px;
@@ -500,7 +515,7 @@ body {
 #index .call-to-action {
   text-align: center;
 }
-#index .call-to-action button {
+#index .call-to-action a.button {
   background: #BBFF00;
   border-radius: 55px;
   font-size: 48.4px;
@@ -508,12 +523,14 @@ body {
   color: #230660;
   letter-spacing: 6.65px;
   text-align: center;
-  padding: 22px 80px;
+  padding: 16px 80px;
   margin: -26px auto;
   border: solid 2px #250561;
+  text-decoration: none;
+  cursor: pointer;
   transition: background-color 0.5s ease-in;
 }
-#index .call-to-action button:hover {
+#index .call-to-action a.button:hover {
   background-color: yellow;
   border: solid 2px white;
 }
@@ -537,6 +554,33 @@ body {
   letter-spacing: 4.86px;
   text-align: center;
   text-transform: uppercase;
+}
+
+#login h2 {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 30px;
+}
+#login p {
+  color: #C5A6FF;
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  width: 600px;
+  margin: 0 auto;
+  margin-bottom: 40px;
+  line-height: 2.4em;
+  letter-spacing: 0.8px;
+}
+#login .qrcode {
+  width: 400px;
+  margin: 0 auto;
+}
+#login .download-app-buttons {
+  width: 300px;
+  margin: 20px auto;
 }
 
 #footer {

@@ -1,6 +1,6 @@
 use maud::{html, DOCTYPE};
 
-pub fn header(page_title: Option<&str>) -> maud::Markup {
+pub fn head(page_title: Option<&str>) -> maud::Markup {
     let title = match page_title {
         Some(title) => title,
         None => "OPES Unite Streaker",
@@ -17,13 +17,32 @@ pub fn header(page_title: Option<&str>) -> maud::Markup {
     }
 }
 
+pub fn header() -> maud::Markup {
+    html! {
+            div id="header" class="grid thirds" {
+                div class="col" id="logo" {
+                    a href="/" {
+                        h1 { span { "OPES Unite Streak Program" } }
+                    }
+                }
+                div class="bigger filler" {
+                }
+                div class="col conversion-rate ones" {
+                    span { "0.025" }
+                    span { span { "USD" } span { "/UBUCK" }}
+                }
+
+                div id="mobile-with-opes-screenshot" {
+                }
+            }
+    }
+}
+
 pub fn streak_program() -> maud::Markup {
     html! {
-        div class="content" {
-            div class="streak-program" {
-                h1 { span { "STREAK" } " " span {"PROGRAM"} }
-                p { "3000 of 10000 spots remaining" }
-            }
+        div class="streak-program" {
+            h1 { span { "STREAK" } " " span {"PROGRAM"} }
+            p { "3000 of 10000 spots remaining" }
         }
     }
 }

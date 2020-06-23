@@ -1,0 +1,31 @@
+#login {
+    h2 {
+        font-size: 24px;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 40px;
+        margin-bottom: 30px;
+    }
+
+    p {
+        color: $purple;
+        font-weight: 400;
+        font-size: 16px;
+        text-align: center;
+        width: 600px;
+        margin: 0 auto;
+        margin-bottom: 40px;
+        line-height: 2.4em;
+        letter-spacing: 0.8px;
+    }
+
+    .qrcode {
+        width: 400px;
+        margin: 0 auto;
+    }
+
+    .download-app-buttons {
+        width: 300px;
+        margin: 20px auto;
+    }
+}
