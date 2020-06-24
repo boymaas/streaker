@@ -6,7 +6,9 @@ use crate::web::page::components;
 
 pub fn page() -> maud::Markup {
     // Login string
-    let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Faccess-node.opesunite.io&source=$account_id";
+    //let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Faccess-node.opesunite.io&source=$account_id";
+
+    let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Fopesdentist.monetashi.io&source=ANID";
 
     let result: String =
         qrcode_generator::to_svg_to_string(url, QrCodeEcc::Low, 400, None).unwrap();

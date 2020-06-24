@@ -5,12 +5,13 @@
 replicaCount: 1
 
 image:
-  repository: registry.digitalocean.com/monetashi/streaker
-  pullPolicy: IfNotPresent
+  repository: "registry.digitalocean.com/monetashi/streaker"
+  pullPolicy: "Always"
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
-imagePullSecrets: []
+imagePullSecrets: 
+  - name: registry-monetashi
 nameOverride: ""
 fullnameOverride: ""
 
