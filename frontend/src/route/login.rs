@@ -1,15 +1,10 @@
-#![recursion_limit = "512"]
-use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-mod partials;
-mod route;
-
-struct Root {
+pub struct Login {
     link: ComponentLink<Self>,
 }
 
-impl Component for Root {
+impl Component for Login {
     type Message = ();
     type Properties = ();
 
@@ -31,29 +26,10 @@ impl Component for Root {
     fn view(&self) -> Html {
         html! {
         <>
-        <div class="container" id="index">
-           <div class="content">
-
-              { partials::header() }
-
-
-            <route::index::Index />
-            // <route::login::Login />
-
-
-           </div>
-        </div>
-
-        { partials::footer() }
 
 
         </>
 
         }
     }
-}
-
-#[wasm_bindgen(start)]
-pub fn run_app() {
-    App::<Root>::new().mount_to_body();
 }
