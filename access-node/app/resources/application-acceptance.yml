@@ -1,0 +1,15 @@
+opes:
+  accessnode:
+    jws-algorithm: ES256K
+    jwk: '{"kty":"EC","d":"jQYyusoBD2C0L8J8UVYIINB1Iw9BVKgpnH2pyrHD8Wg","crv":"P-256K","kid":"123","x":"bJxKeycwIWejNtqI4ReB_lgyKnjWHvw1nvVO5i4ZXY8","y":"NCE_sVaSzrbQgPAA68wCZPGuPtqRQ-xoiN17cTmV880"}'
+    name: test-access-node
+    display-name: 'Test Access node'
+    deep-link-host-url: 'https://opes-one-deep-linking.storage.googleapis.com'
+    url: 'https://accessnodesample.com'
+opesbatchservice:
+  client:
+    retry:
+      delay: '5s'
+      attempts: 2
+    api-version: '1.0'
+    url: 'http://foo.bar'

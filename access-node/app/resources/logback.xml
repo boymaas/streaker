@@ -1,0 +1,16 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>false</withJansi>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="com.opes.logging.GCPCloudLoggingJSONLayout">
+                <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %32.32X{CORRELATION:-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX} %25.25X{SERVICE:-opesaccessnode} %20.20thread %25.25logger{25} %-6level - %msg%replace(%ex){'[\r\n]+', ''}%nopex%n</pattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+    <logger name="com.opes.accessnode" level="TRACE"/>
+</configuration>

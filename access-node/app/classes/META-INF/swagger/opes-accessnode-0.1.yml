@@ -1,0 +1,197 @@
+openapi: 3.0.1
+info:
+  title: OPES Accessnode
+  description: OPES Accessnode
+  version: '0.1'
+paths:
+  /accessnode/tally/push:
+    post:
+      summary: Push a tally object.
+      description: Accepts an incoming tally request and forwards on to the batching
+        service
+      operationId: postTallyPush
+      parameters:
+      - name: X-API-Version
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TallyRequest'
+        required: true
+      responses:
+        200:
+          description: Successful operation
+        400:
+          description: X-API-Version header not supplied
+        401:
+          description: Access token is missing or invalid
+        500:
+          description: Tally signature failure.
+  /accessnode/tally/params:
+    get:
+      summary: Get parameters required for tally creation.
+      description: Get parameters required for tally creation.
+      operationId: tallyParams
+      parameters:
+      - name: X-API-Version
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TallyParamsResponse'
+        400:
+          description: X-API-Version header not supplied
+        401:
+          description: Access token is missing or invalid
+  /ready:
+    get:
+      summary: whether the app is ready
+      description: whether the app is ready
+      operationId: index
+      parameters: []
+      responses:
+        503:
+          description: app is not ready
+        200:
+          description: app is ready
+  /qr/payload:
+    get:
+      summary: Generates a QR code URL for this access node
+      description: Generates a QR code URL for this access node
+      operationId: payload
+      parameters:
+      - name: X-API-Version
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+        400:
+          description: X-API-Version header not supplied
+  /attribution:
+    post:
+      summary: Post attribution
+      description: Post attribution
+      operationId: postAttribution
+      parameters:
+      - name: X-API-Version
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttributionRequest'
+      responses:
+        204:
+          description: Successful operation
+        400:
+          description: X-API-Version header not supplied, the attribution JWT signature
+            could not be verified, or there are missing claims
+  /health:
+    get:
+      parameters: []
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResult'
+          description: Indicator of health of the application
+        503:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResult'
+          description: App is down
+  /info:
+    get:
+      parameters: []
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+          description: Provide information about the application.
+components:
+  schemas:
+    TallyRequest:
+      required:
+      - tally
+      type: object
+      properties:
+        tally:
+          minLength: 1
+          required:
+          - 'true'
+          type: string
+          description: The tally object. This is a JSON Web Token
+        source:
+          required:
+          - 'false'
+          type: string
+          description: Source of the tally token
+          nullable: true
+    TallyParamsResponse:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          minLength: 1
+          required:
+          - 'true'
+          type: string
+          description: Access Node blockchain account name
+      description: Response containing the parameters needed to post a tally
+    AttributionRequest:
+      required:
+      - attribution
+      type: object
+      properties:
+        attribution:
+          minLength: 1
+          required:
+          - 'true'
+          type: string
+          description: A signed JSON Web token containing the attribution information
+            in the claims
+    HealthStatus:
+      type: string
+      enum:
+      - UP
+      - DOWN
+    HealthResult:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+      description: Health Indicator output
+    Info:
+      type: object
+      properties:
+        version:
+          type: string
+        name:
+          type: string
+        git.commit.id:
+          type: string

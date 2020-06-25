@@ -1,0 +1,34 @@
+micronaut:
+  application:
+    name: opesaccessnode
+  security:
+    enabled: true
+    token:
+      jwt:
+        enabled: true
+        signatures:
+          jwks:
+            opesservice:
+              url: ${OPESSERVICE_JWKS:`https://opes-opesservice.qa.objectcomputing-opes-one.com/keys`}
+              key-type: 'EC'
+  router:
+    versioning:
+      enabled: true
+      parameter:
+        enabled: false
+      header:
+        enabled: true
+        names:
+          - 'X-API-VERSION'
+---
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+  info:
+    enabled: true
+    sensitive: false
+---
+jackson:
+  bean-introspection-module: true
+  module-scan: false
