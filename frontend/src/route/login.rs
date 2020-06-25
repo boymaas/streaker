@@ -1,3 +1,5 @@
+use crate::util::RawHTML;
+use qrcode_generator::QrCodeEcc;
 use yew::prelude::*;
 
 pub struct Login {
@@ -24,11 +26,26 @@ impl Component for Login {
     }
 
     fn view(&self) -> Html {
+        let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Fopesdentist.monetashi.io&source=ANID";
+        let result: String =
+            qrcode_generator::to_svg_to_string(url, QrCodeEcc::Low, 400, None).unwrap();
+
         html! {
-        <>
 
+            <div class="content" id="login">
+                <h2>{ "Scan with OPES ID app to Join" }</h2>
 
-        </>
+                <p>{ "Install the App on your device, create an account on the OPES Network. Now you can scan this QrCode to join the OPES Unite Streak Program." }</p>
+
+                <div class="qrcode">
+                    <RawHTML inner_html={result} />
+                </div>
+                <div class="download-app-buttons grid halves">
+                    <div class="app-store col"><img src="/img/app-store-badge.svg" /></div>
+                    <div class="google-play col"><img src="/img/google-play-badge.svg" /></div>
+                </div>
+            </div>
+
 
         }
     }

@@ -9,7 +9,20 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+# We choose web_sys due to its support form the Rust WASM Working Group
 [dependencies]
-yew = "0.16"
+yew = "0.16.2"
 wasm-bindgen = "0.2"
-yew-router = "0.13.0"
+yew-router = { version="0.13.0", features=["web_sys"] }
+qrcode-generator = "1.0.6"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Document",
+  "Element",
+  "Node",
+  "Window",
+  "HtmlCollection",
+]
+

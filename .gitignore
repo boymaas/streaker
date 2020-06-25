@@ -1,2 +1,4 @@
+/frontend/target
+/backend/target
 /target
 Cargo.lock

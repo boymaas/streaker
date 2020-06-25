@@ -5,6 +5,7 @@ use yew_router::prelude::*;
 
 mod partials;
 mod route;
+mod util;
 
 use route::{index::Index, login::Login, AppRoute};
 
