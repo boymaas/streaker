@@ -32,7 +32,7 @@ pub fn footer() -> Html {
               <div class="contact col">
                  <h3><span></span>{ "Contact" }</h3>
                  <ul>
-                    <li><a href="contact@qrcodes.io">{ "contact@qrcodes.io" }</a></li>
+                    <li><a href="mailto:contact@qrcodes.io">{ "contact@qrcodes.io" }</a></li>
                  </ul>
               </div>
               <div class="col"></div>
