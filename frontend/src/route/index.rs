@@ -1,4 +1,6 @@
+use crate::route::AppRoute;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 pub struct Index {
     link: ComponentLink<Self>,
@@ -39,7 +41,10 @@ impl Component for Index {
              <li>{ "Build streak" }</li>
           </ul>
           <div class="call-to-action">
-             <a class="button" href="/login">{ "START" }</a><br />
+             <RouterAnchor<AppRoute> route=AppRoute::Login classes="button">
+                 {"START"}
+             </RouterAnchor<AppRoute>>
+             <br/>
              <a class="returning-user" href="#">{ "returning user login here" }</a>
           </div>
           <div class="instant-cashout">

@@ -1,1 +1,1 @@
-thttp static
+microserver ./static -p 5050

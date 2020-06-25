@@ -1,12 +1,14 @@
+use crate::route::AppRoute;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 pub fn header() -> Html {
     html! {
       <div id="header" class="grid thirds">
          <div class="col" id="logo">
-            <a href="/">
+             <RouterAnchor<AppRoute> route=AppRoute::Index>
                <h1><span>{ "OPES Unite Streak Program" }</span></h1>
-            </a>
+             </RouterAnchor<AppRoute>>
          </div>
          <div class="bigger filler"></div>
          <div class="col conversion-rate ones">
