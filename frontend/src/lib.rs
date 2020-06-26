@@ -1,5 +1,4 @@
 #![recursion_limit = "512"]
-use anyhow::Error;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 use yew::services::fetch::FetchTask;
@@ -9,6 +8,8 @@ mod partials;
 mod route;
 mod services;
 mod util;
+
+use services::api;
 
 use route::{index::Index, login::Login, AppRoute};
 
@@ -49,7 +50,12 @@ impl Component for Root {
         if first_render {
             log::debug!("First Render");
             // This callback can be anything
-            let callback = self.link.callback(|_: Result<String, Error>| Msg::Token);
+            let callback = self
+                .link
+                .callback(|jwt: Result<api::JwtToken, api::ApiError>| {
+                    log::debug!("{:?}", jwt);
+                    Msg::Token
+                });
             // The callback is described here. It will perform the
             // fetch and run the callback either containing a valid
             // response or an error. It is the job from this compent
@@ -57,6 +63,9 @@ impl Component for Root {
 
             // TODO: clean this up, we need to check if the fetch could be executed
             // and otherwise display some kind of error.
+            //
+            // NOTE: the fetch task must exist for the duration of the request
+            //       on a drop it will abort the request.
             self.fetch_task = Some(self.api.token_fetch(callback).unwrap());
         }
     }

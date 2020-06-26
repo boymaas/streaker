@@ -1,6 +1,7 @@
-use anyhow::Error;
+use anyhow::Result;
 use lazy_static::lazy_static;
 use log;
+use serde::Deserialize;
 use serde_json::json;
 use yew::callback::Callback;
 use yew::format::Nothing;
@@ -9,7 +10,35 @@ use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 use url::Url;
 
-// TODO: use dotenv
+use thiserror::Error as ThisError;
+
+/// Define all possible errors
+#[derive(ThisError, Clone, Debug)]
+pub enum ApiError {
+    /// 401
+    #[error("Unauthorized")]
+    Unauthorized,
+
+    /// 403
+    #[error("Forbidden")]
+    Forbidden,
+
+    /// 404
+    #[error("Not Found")]
+    NotFound,
+
+    /// 500
+    #[error("Internal Server Error")]
+    InternalServerError,
+
+    /// serde deserialize error
+    #[error("Deserialize Error")]
+    DeserializeError,
+
+    /// request error
+    #[error("Http Request Error")]
+    RequestError,
+}
 
 lazy_static! {
     pub static ref END_POINT: Url =
@@ -29,6 +58,11 @@ pub struct Api {
     fetcher: FetchService,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct JwtToken {
+    token: String,
+}
+
 impl Api {
     pub fn new() -> Self {
         Self {
@@ -37,7 +71,10 @@ impl Api {
     }
 
     /// fetches token from API
-    pub fn token_fetch(&mut self, callback: Callback<Text>) -> Result<FetchTask, Error> {
+    pub fn token_fetch(
+        &mut self,
+        callback: Callback<Result<JwtToken, ApiError>>,
+    ) -> Result<FetchTask> {
         // build the requets, not that this builder requires body to be called
         // and the body type will be used in the fetch call
         // which will have to transform it into Result<String,Error>
@@ -48,9 +85,21 @@ impl Api {
             .expect("failed to build request");
 
         // this handler will get the json returned from our
-        // API. Parse it into the expected structure.
+        // API. Parse it into the expected structure, and return
+        // the required structure to the user
         let handler = move |response: Response<Text>| {
-            log::info!("Response {:?}", response);
+            if let (meta, Ok(data)) = response.into_parts() {
+                log::info!("Response {:?}", data);
+                if meta.status.is_success() {
+                    let deserialized: Result<JwtToken, _> = serde_json::from_str(&data);
+                    if let Ok(data) = deserialized {
+                        callback.emit(Ok(data));
+                    } else {
+                        callback.emit(Err(ApiError::DeserializeError));
+                    }
+                }
+            }
+            // if status is ok
         };
 
         self.fetcher.fetch(request, handler.into())
