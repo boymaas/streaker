@@ -44,7 +44,7 @@ impl Component for Root {
     }
 
     // called when app initiatlises, we use this to
-    // get a token from our backend.
+    // get a token from our backend if we do not have one yet.
     fn rendered(&mut self, first_render: bool) {
         if first_render {
             log::debug!("First Render");
