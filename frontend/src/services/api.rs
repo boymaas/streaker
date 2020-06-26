@@ -97,9 +97,18 @@ impl Api {
                     } else {
                         callback.emit(Err(ApiError::DeserializeError));
                     }
+                } else {
+                    match meta.status.as_u16() {
+                        401 => callback.emit(Err(ApiError::Unauthorized)),
+                        403 => callback.emit(Err(ApiError::Forbidden)),
+                        404 => callback.emit(Err(ApiError::NotFound)),
+                        500 => callback.emit(Err(ApiError::InternalServerError)),
+                        _ => callback.emit(Err(ApiError::RequestError)),
+                    }
                 }
+            } else {
+                callback.emit(Err(ApiError::RequestError))
             }
-            // if status is ok
         };
 
         self.fetcher.fetch(request, handler.into())
