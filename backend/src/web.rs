@@ -19,9 +19,16 @@ pub async fn start() {
         .allow_method("GET")
         .allow_method("POST");
 
+    // build a filter which clones our Arc on each
+    // new connection request.
+    let websocket_sessions = ws::Sessions::default();
+    let websocket_sessions = warp::any().map(move || websocket_sessions.clone());
     let websocket = warp::path("ws")
         .and(warp::ws())
-        .map(|ws: warp::ws::Ws| ws.on_upgrade(ws::handle));
+        .and(websocket_sessions)
+        .map(|ws: warp::ws::Ws, sessions| {
+            ws.on_upgrade(move |socket| ws::handle(sessions, socket))
+        });
 
     let routes = websocket.or(token_fetch).or(api).with(cors).with(log);
 
