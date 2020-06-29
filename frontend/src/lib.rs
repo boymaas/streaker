@@ -8,6 +8,8 @@ use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew_router::prelude::*;
 
+use streaker_common::ws::{WsRequest, WsResponse};
+
 mod partials;
 mod route;
 mod services;
@@ -29,6 +31,7 @@ struct Root {
     ws: Option<WebSocketTask>,
 }
 
+#[derive(Debug)]
 pub enum Msg {
     Route(Route),
     Token(api::JwtToken),
@@ -101,7 +104,20 @@ impl Component for Root {
             Msg::Route(route) => self.current_route = AppRoute::switch(route),
             Msg::Token(jwt_token) => token::set_token(Some(jwt_token.token)),
             Msg::TokenFetchError => {}
-            Msg::WsReady(data) => log::info!("WsReady {:?}", data),
+            Msg::WsReady(Ok(response)) => {
+                log::info!("WsReady {:?}", response);
+                match response {
+                    WsResponse::Connected => log::info!("Connected"),
+                    WsResponse::Authenticated(visitor_id) => {
+                        // we are authenticated by a scan, navigate
+                        // towards the secure area
+                    }
+                }
+            }
+
+            Msg::WsReady(Err(e)) => {
+                log::error!("WsReady::Error {:?}", e);
+            }
             Msg::WsAction(action) => {
                 log::info!("WsAction {:?}", action);
                 match action {
@@ -109,6 +125,7 @@ impl Component for Root {
                     _ => {}
                 }
             }
+            _ => log::warn!("Uncaught Msg: {:?}", msg),
         }
         true
     }
@@ -153,21 +170,6 @@ impl Component for Root {
 }
 
 // Websocket relevant code
-
-type AsBinary = bool;
-
-/// This type is used as a request which sent to websocket connection.
-#[derive(Serialize, Debug)]
-struct WsRequest {
-    value: u32,
-}
-
-// This is the response after
-// successfull connecion
-#[derive(Deserialize, Debug)]
-pub struct WsResponse {
-    connected: bool,
-}
 
 // WsAction are messages to be send over the callback
 // link. We can react on those to reconnect, when

@@ -1,40 +1,7 @@
-use futures::{FutureExt, StreamExt};
-use log;
-use tokio::sync::{mpsc, RwLock};
-use warp::ws::{Message, WebSocket};
 use warp::Filter;
 
-use serde_json::json;
-
 mod token;
-
-async fn handle_ws_connection(socket: warp::ws::WebSocket) {
-    let (ws_tx, mut ws_rx) = socket.split();
-
-    let (tx, rx) = mpsc::unbounded_channel();
-    tokio::task::spawn(rx.forward(ws_tx).map(|result| {
-        if let Err(e) = result {
-            eprintln!("websocket send error: {}", e);
-        }
-    }));
-
-    // send something on connection
-    tx.send(Ok(Message::text(json!({"connected": true}).to_string())))
-        .unwrap();
-
-    log::info!("Connection established");
-    while let Some(result) = ws_rx.next().await {
-        let msg = match result {
-            Ok(msg) => msg,
-            Err(e) => {
-                eprintln!("websocket error {}", e);
-                break;
-            }
-        };
-        // do something with message
-    }
-    // handle disconnect
-}
+mod ws;
 
 pub async fn start() {
     let log = warp::log("streaker");
@@ -52,11 +19,11 @@ pub async fn start() {
         .allow_method("GET")
         .allow_method("POST");
 
-    let ws = warp::path("ws")
+    let websocket = warp::path("ws")
         .and(warp::ws())
-        .map(|ws: warp::ws::Ws| ws.on_upgrade(handle_ws_connection));
+        .map(|ws: warp::ws::Ws| ws.on_upgrade(ws::handle));
 
-    let routes = ws.or(token_fetch).or(api).with(cors).with(log);
+    let routes = websocket.or(token_fetch).or(api).with(cors).with(log);
 
     // since we will be running inside a docker container
     // our server should exit on a CTRL-C
