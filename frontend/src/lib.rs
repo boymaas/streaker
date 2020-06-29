@@ -1,7 +1,11 @@
 #![recursion_limit = "512"]
+use anyhow::Error;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::FetchTask;
+use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew_router::prelude::*;
 
 mod partials;
@@ -20,12 +24,17 @@ struct Root {
     link: ComponentLink<Self>,
     api: services::api::Api,
     fetch_task: Option<FetchTask>,
+
+    ws_service: WebSocketService,
+    ws: Option<WebSocketTask>,
 }
 
 pub enum Msg {
     Route(Route),
     Token(api::JwtToken),
     TokenFetchError,
+    WsReady(Result<WsResponse, Error>),
+    WsAction(WsAction),
 }
 
 impl Component for Root {
@@ -43,6 +52,8 @@ impl Component for Root {
             router_agent,
             api: services::api::Api::new(),
             fetch_task: None,
+            ws_service: WebSocketService::new(),
+            ws: None,
         }
     }
 
@@ -79,6 +90,9 @@ impl Component for Root {
                     log::info!("Authenticated token")
                 }
             }
+
+            // now build up a websocket connection
+            self.ws_connect();
         }
     }
 
@@ -87,6 +101,14 @@ impl Component for Root {
             Msg::Route(route) => self.current_route = AppRoute::switch(route),
             Msg::Token(jwt_token) => token::set_token(Some(jwt_token.token)),
             Msg::TokenFetchError => {}
+            Msg::WsReady(data) => log::info!("WsReady {:?}", data),
+            Msg::WsAction(action) => {
+                log::info!("WsAction {:?}", action);
+                match action {
+                    WsAction::Lost => log::info!("Lost connection, trying to reconnect"),
+                    _ => {}
+                }
+            }
         }
         true
     }
@@ -127,6 +149,59 @@ impl Component for Root {
             </>
 
         }
+    }
+}
+
+// Websocket relevant code
+
+type AsBinary = bool;
+
+/// This type is used as a request which sent to websocket connection.
+#[derive(Serialize, Debug)]
+struct WsRequest {
+    value: u32,
+}
+
+// This is the response after
+// successfull connecion
+#[derive(Deserialize, Debug)]
+pub struct WsResponse {
+    connected: bool,
+}
+
+// WsAction are messages to be send over the callback
+// link. We can react on those to reconnect, when
+// connection is lost.
+//
+// on a WebSocket status of error, WsAction closed is
+// called again.
+#[derive(Debug)]
+pub enum WsAction {
+    Connected,
+    Lost,
+}
+
+impl From<WsAction> for Msg {
+    fn from(action: WsAction) -> Self {
+        Msg::WsAction(action)
+    }
+}
+
+impl Root {
+    fn ws_connect(&mut self) {
+        // NOTE: this is interesting, I specify Json(data) in the type
+        // signature. The fact that the callback has this type signals
+        // to the ws_service what to send
+        let callback = self.link.callback(|Json(data)| Msg::WsReady(data));
+        let notification = self.link.callback(|status| match status {
+            WebSocketStatus::Opened => WsAction::Connected,
+            WebSocketStatus::Closed | WebSocketStatus::Error => WsAction::Lost.into(),
+        });
+        let task = self
+            .ws_service
+            .connect("ws://localhost:8080/ws", callback, notification)
+            .unwrap();
+        self.ws = Some(task);
     }
 }
 
