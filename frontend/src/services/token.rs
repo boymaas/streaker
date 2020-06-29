@@ -5,6 +5,9 @@ use std::sync::RwLock;
 use uuid::Uuid;
 use yew::services::storage::{Area, StorageService};
 
+use anyhow::Result;
+use thiserror::Error;
+
 // This should match our backend
 // TODO: maybe create a shared include
 #[derive(Debug, Deserialize)]
@@ -68,5 +71,13 @@ pub fn is_authenticated() -> bool {
         }
     } else {
         false
+    }
+}
+
+pub fn get_token_suuid() -> Result<Uuid> {
+    if let Some(token) = get_token() {
+        Ok(dangerous_unsafe_decode::<Claims>(&token)?.claims.suuid)
+    } else {
+        Err(anyhow::anyhow!("Missing token!"))
     }
 }

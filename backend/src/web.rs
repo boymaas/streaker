@@ -1,7 +1,10 @@
 use warp::Filter;
 
+mod anode;
 mod token;
 mod ws;
+
+use uuid::Uuid;
 
 pub async fn start() {
     let log = warp::log("streaker");
@@ -23,11 +26,11 @@ pub async fn start() {
     // new connection request.
     let websocket_sessions = ws::Sessions::default();
     let websocket_sessions = warp::any().map(move || websocket_sessions.clone());
-    let websocket = warp::path("ws")
+    let websocket = warp::path!("ws" / Uuid)
         .and(warp::ws())
         .and(websocket_sessions)
-        .map(|ws: warp::ws::Ws, sessions| {
-            ws.on_upgrade(move |socket| ws::handle(sessions, socket))
+        .map(|suid: Uuid, ws: warp::ws::Ws, sessions| {
+            ws.on_upgrade(move |socket| ws::handle(sessions, suid, socket))
         });
 
     let routes = websocket.or(token_fetch).or(api).with(cors).with(log);

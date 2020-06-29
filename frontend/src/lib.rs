@@ -1,6 +1,7 @@
 #![recursion_limit = "512"]
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
@@ -65,7 +66,10 @@ impl Component for Root {
     fn rendered(&mut self, first_render: bool) {
         if first_render {
             if !token::have_token() {
-                // This callback can be anything
+                // We do not have a token, lets get one,
+                // no token means we are not authenticated
+                // yet, as such, we have to register
+                // the suid to our websocket connection.
                 let callback =
                     self.link
                         .callback(|result: Result<api::JwtToken, api::ApiError>| {
@@ -92,17 +96,26 @@ impl Component for Root {
                 if token::is_authenticated() {
                     log::info!("Authenticated token")
                 }
-            }
 
-            // now build up a websocket connection
-            self.ws_connect();
+                // in any case, we can open our websocket connection
+                // witht the sid in the token
+
+                // now build up a websocket connection
+                // we know we have a token, so we can unwrap
+                self.ws_connect(token::get_token_suuid().unwrap());
+            }
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Route(route) => self.current_route = AppRoute::switch(route),
-            Msg::Token(jwt_token) => token::set_token(Some(jwt_token.token)),
+            Msg::Token(jwt_token) => {
+                // we received a new jwt token, lets set it
+                // and (re)connect our websocket
+                token::set_token(Some(jwt_token.token));
+                self.ws_connect(token::get_token_suuid().unwrap());
+            }
             Msg::TokenFetchError => {}
             Msg::WsReady(Ok(response)) => {
                 log::info!("WsReady {:?}", response);
@@ -111,6 +124,11 @@ impl Component for Root {
                     WsResponse::Authenticated(visitor_id) => {
                         // we are authenticated by a scan, navigate
                         // towards the secure area
+                    }
+                    WsResponse::DoubleConnection => {
+                        // somebody opened another tab with same app
+                        // we have to show this is not possible
+                        // and disconnect
                     }
                 }
             }
@@ -190,7 +208,7 @@ impl From<WsAction> for Msg {
 }
 
 impl Root {
-    fn ws_connect(&mut self) {
+    fn ws_connect(&mut self, suuid: Uuid) {
         // NOTE: this is interesting, I specify Json(data) in the type
         // signature. The fact that the callback has this type signals
         // to the ws_service what to send
@@ -201,7 +219,11 @@ impl Root {
         });
         let task = self
             .ws_service
-            .connect("ws://localhost:8080/ws", callback, notification)
+            .connect(
+                &format!("ws://localhost:8080/ws/{}", suuid),
+                callback,
+                notification,
+            )
             .unwrap();
         self.ws = Some(task);
     }

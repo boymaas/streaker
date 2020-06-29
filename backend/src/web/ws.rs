@@ -1,36 +1,42 @@
 use futures::{FutureExt, StreamExt};
 use log;
-use serde_json::json;
+use serde_json;
 use std::collections::HashMap;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
+use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
-use warp::ws::{Message, WebSocket};
-use warp::Filter;
+use uuid::Uuid;
+use warp::ws::Message;
 
 use streaker_common::ws::{WsRequest, WsResponse};
 
-static NEXT_SESSION_ID: AtomicUsize = AtomicUsize::new(1);
+pub type WsChannel = mpsc::UnboundedSender<Result<Message, warp::Error>>;
+pub type Sessions = Arc<RwLock<HashMap<Uuid, WsChannel>>>;
 
-pub type Sessions =
-    Arc<RwLock<HashMap<usize, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
+fn send_response(tx: &mut WsChannel, ws_response: WsResponse) {
+    tx.send(Ok(Message::text(
+        serde_json::to_string(&ws_response).unwrap(),
+    )))
+    .unwrap();
+}
 
-pub async fn handle(sessions: Sessions, socket: warp::ws::WebSocket) {
-    let session_id = NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed);
+pub async fn handle(sessions: Sessions, suuid: Uuid, socket: warp::ws::WebSocket) {
+    // when we already have another tab open, we can send a message to the
+    // previous open tab to close that one.
 
     let (ws_tx, mut ws_rx) = socket.split();
 
     let (tx, rx) = mpsc::unbounded_channel();
     tokio::task::spawn(rx.forward(ws_tx).map(|result| {
         if let Err(e) = result {
-            eprintln!("websocket send error: {}", e);
+            log::error!("websocket send error: {}", e);
         }
     }));
 
     // store the sender in our sessions
-    sessions.write().await.insert(session_id, tx.clone());
+    // if we had an open connection, close that one
+    if let Some(mut old_tx) = sessions.write().await.insert(suuid, tx.clone()) {
+        send_response(&mut old_tx, WsResponse::DoubleConnection);
+    }
 
     log::info!("{:?}", sessions.read().await.keys());
 
@@ -40,12 +46,12 @@ pub async fn handle(sessions: Sessions, socket: warp::ws::WebSocket) {
     )))
     .unwrap();
 
-    log::info!("Connection established");
+    log::info!("Connection established suuid={}", suuid);
     while let Some(result) = ws_rx.next().await {
         let msg = match result {
             Ok(msg) => msg,
             Err(e) => {
-                eprintln!("websocket error(suid={}) {}", session_id, e);
+                eprintln!("websocket error(suuid={}) {}", suuid, e);
                 break;
             }
         };
@@ -55,7 +61,7 @@ pub async fn handle(sessions: Sessions, socket: warp::ws::WebSocket) {
             Ok(msg) => {
                 if let Ok(request) = serde_json::from_str::<WsRequest>(msg) {
                     // do something with message
-                    handle_request(&sessions, session_id, request).await;
+                    handle_request(&sessions, suuid, request).await;
                 } else {
                     log::error!("Problem deserializing WebRequest")
                 };
@@ -68,14 +74,16 @@ pub async fn handle(sessions: Sessions, socket: warp::ws::WebSocket) {
         }
     }
     // handle disconnect
-    handle_disconnect(&sessions, session_id).await;
+    handle_disconnect(&sessions, suuid).await;
 }
 
-async fn handle_disconnect(sessions: &Sessions, session_id: usize) {
+async fn handle_disconnect(sessions: &Sessions, session_id: Uuid) {
     log::info!("disconneting session: {}", session_id);
 
     // Stream closed up, so remove from the user list
     sessions.write().await.remove(&session_id);
 }
 
-async fn handle_request(sessions: &Sessions, session_id: usize, request: WsRequest) {}
+async fn handle_request(sessions: &Sessions, session_id: Uuid, request: WsRequest) {
+    match request {}
+}

@@ -4,9 +4,7 @@ type VisitorId = String;
 
 /// This type is used as a request which sent to websocket connection.
 #[derive(Serialize, Deserialize, Debug)]
-pub struct WsRequest {
-    value: u32,
-}
+pub enum WsRequest {}
 
 // This is the response after
 // successfull connecion
@@ -14,4 +12,5 @@ pub struct WsRequest {
 pub enum WsResponse {
     Connected,
     Authenticated(VisitorId),
+    DoubleConnection,
 }
