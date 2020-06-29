@@ -61,7 +61,9 @@ pub async fn handle(sessions: Sessions, socket: warp::ws::WebSocket) {
                 };
             }
             Err(e) => {
-                log::error!("No string message");
+                // we get a non string message on a disconnect
+                // for soem reason
+                log::warn!("No string message");
             }
         }
     }
