@@ -10,6 +10,7 @@ mod services;
 mod util;
 
 use services::api;
+use services::token;
 
 use route::{index::Index, login::Login, AppRoute};
 
@@ -23,7 +24,8 @@ struct Root {
 
 pub enum Msg {
     Route(Route),
-    Token,
+    Token(api::JwtToken),
+    TokenFetchError,
 }
 
 impl Component for Root {
@@ -48,32 +50,43 @@ impl Component for Root {
     // get a token from our backend if we do not have one yet.
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            log::debug!("First Render");
-            // This callback can be anything
-            let callback = self
-                .link
-                .callback(|jwt: Result<api::JwtToken, api::ApiError>| {
-                    log::debug!("{:?}", jwt);
-                    Msg::Token
-                });
-            // The callback is described here. It will perform the
-            // fetch and run the callback either containing a valid
-            // response or an error. It is the job from this compent
-            // to handle both.
+            if !token::have_token() {
+                // This callback can be anything
+                let callback =
+                    self.link
+                        .callback(|result: Result<api::JwtToken, api::ApiError>| {
+                            if let Ok(jwt_token) = result {
+                                Msg::Token(jwt_token)
+                            } else {
+                                Msg::TokenFetchError
+                            }
+                        });
+                // The callback is described here. It will perform the
+                // fetch and run the callback either containing a valid
+                // response or an error. It is the job from this compent
+                // to handle both.
 
-            // TODO: clean this up, we need to check if the fetch could be executed
-            // and otherwise display some kind of error.
-            //
-            // NOTE: the fetch task must exist for the duration of the request
-            //       on a drop it will abort the request.
-            self.fetch_task = Some(self.api.token_fetch(callback).unwrap());
+                // TODO: clean this up, we need to check if the fetch could be executed
+                // and otherwise display some kind of error.
+                //
+                // NOTE: the fetch task must exist for the duration of the request
+                //       on a drop it will abort the request.
+                self.fetch_task = Some(self.api.token_fetch(callback).unwrap());
+            } else {
+                // we have a token, as such check if its authenticated
+                // and ifso navigate towards the logged in area
+                if token::is_authenticated() {
+                    log::info!("Authenticated token")
+                }
+            }
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Route(route) => self.current_route = AppRoute::switch(route),
-            Msg::Token => log::debug!("Token received"),
+            Msg::Token(jwt_token) => token::set_token(Some(jwt_token.token)),
+            Msg::TokenFetchError => {}
         }
         true
     }

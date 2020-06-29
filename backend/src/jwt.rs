@@ -11,6 +11,7 @@ use uuid::Uuid;
 struct Claims {
     exp: u64,
     suuid: Uuid,
+    authenticated: bool,
     company: String,
     concept: String,
 }
@@ -26,6 +27,7 @@ pub fn generate_token() -> String {
     let my_claims = Claims {
         exp: chrono::Utc::now().timestamp() as u64 + 24 * 60 * 60,
         suuid: Uuid::new_v4(),
+        authenticated: false,
         company: "OPES Unite".to_owned(),
         concept: "Streaker".to_owned(),
     };

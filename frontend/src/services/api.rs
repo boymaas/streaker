@@ -60,7 +60,7 @@ pub struct Api {
 
 #[derive(Deserialize, Debug)]
 pub struct JwtToken {
-    token: String,
+    pub token: String,
 }
 
 impl Api {
