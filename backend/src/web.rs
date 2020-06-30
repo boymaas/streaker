@@ -33,7 +33,21 @@ pub async fn start() {
             ws.on_upgrade(move |socket| ws::handle(sessions, suid, socket))
         });
 
-    let routes = websocket.or(token_fetch).or(api).with(cors).with(log);
+    // the attribution from the access node
+    let attribution = warp::post()
+        .and(warp::path!("api" / "v1" / "anode" / "attribution"))
+        // NOTE: how the type system works here
+        // I specify the json body here, and it magically deserialises
+        // in the signature of the map beneath
+        .and(warp::body::json())
+        .map(anode::attribution);
+
+    let routes = websocket
+        .or(attribution)
+        .or(token_fetch)
+        .or(api)
+        .with(cors)
+        .with(log);
 
     // since we will be running inside a docker container
     // our server should exit on a CTRL-C

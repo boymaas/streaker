@@ -9,7 +9,7 @@ cat -u - | grep --line-buffered 'ATTRIBUTION RECV' | \
 	jq --unbuffered fromjson | \
 	jq --unbuffered -c .claims |
 while read -r claim; do
-   attribution="{access_node_name: $access_node_name, claim: $claim }"
+   attribution="{\"access_node_name\": \"$access_node_name\", \"claim\": $claim }"
    echo  "POST attribution $attribution => $end_point"
    curl --header "Content-Type: application/json" \
 	--request POST \
