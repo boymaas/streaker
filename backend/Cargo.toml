@@ -24,3 +24,14 @@ futures = "0.3.5"
 log = "0.4.8"
 streaker-common = {version = "0.1.0", path="../common"}
 sqlx = {version = "0.3.5", default-features = false, features=["runtime-tokio", "macros", "postgres", "uuid", "chrono", "json"]}
+refinery = { version = "0.3.0", features = ["postgres"] }
+barrel = { version = "0.6.5", features = ["pg"] }
+url = "2.1.1"
+
+[[bin]]
+name = "migrate"
+path = "src/migrate.rs"
+
+[[bin]]
+name = "streaker"
+path = "src/main.rs"
