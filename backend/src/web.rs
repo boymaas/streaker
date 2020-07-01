@@ -1,3 +1,4 @@
+use sqlx::postgres::PgPool;
 use warp::Filter;
 
 mod anode;
@@ -6,7 +7,7 @@ mod ws;
 
 use uuid::Uuid;
 
-pub async fn start() {
+pub async fn start(pool: &PgPool) {
     let log = warp::log("streaker");
 
     let api = warp::any().map(|| "OPES Unite Streaker API");
