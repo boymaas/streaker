@@ -12,6 +12,7 @@ struct Claims {
     exp: u64,
     suuid: Uuid,
     authenticated: bool,
+    visitorid: Option<String>,
     company: String,
     concept: String,
 }
@@ -28,6 +29,29 @@ pub fn generate_token() -> String {
         exp: chrono::Utc::now().timestamp() as u64 + 24 * 60 * 60,
         suuid: Uuid::new_v4(),
         authenticated: false,
+        visitorid: None,
+        company: "OPES Unite".to_owned(),
+        concept: "Streaker".to_owned(),
+    };
+
+    // my_claims is a struct that implements Serialize
+    // This will create a JWT using HS256 as algorithm
+    encode(
+        &Header::default(),
+        &my_claims,
+        &EncodingKey::from_secret(SECRET.as_ref()),
+    )
+    .unwrap()
+}
+
+pub fn generate_authenticated_token(suuid: Uuid, visitorid: String) -> String {
+    // TODO: make the company and concept enviroment
+    // varables
+    let my_claims = Claims {
+        exp: chrono::Utc::now().timestamp() as u64 + 24 * 60 * 60,
+        suuid: Uuid::new_v4(),
+        authenticated: true,
+        visitorid: Some(visitorid),
         company: "OPES Unite".to_owned(),
         concept: "Streaker".to_owned(),
     };

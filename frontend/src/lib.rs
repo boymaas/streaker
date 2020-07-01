@@ -7,7 +7,7 @@ use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
-use yew_router::prelude::*;
+use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 
 use streaker_common::ws::{WsRequest, WsResponse};
 
@@ -19,7 +19,7 @@ mod util;
 use services::api;
 use services::token;
 
-use route::{index::Index, login::Login, AppRoute};
+use route::{dashboard::DashBoard, index::Index, login::Login, AppRoute};
 
 struct Root {
     current_route: Option<AppRoute>,
@@ -103,6 +103,11 @@ impl Component for Root {
                 // now build up a websocket connection
                 // we know we have a token, so we can unwrap
                 self.ws_connect(token::get_token_suuid().unwrap());
+
+                // lets navigate to authenticate area
+                //
+                self.router_agent
+                    .send(ChangeRoute(AppRoute::DashBoard.into()));
             }
         }
     }
@@ -121,14 +126,21 @@ impl Component for Root {
                 log::info!("WsReady {:?}", response);
                 match response {
                     WsResponse::Connected => log::info!("Connected"),
-                    WsResponse::Authenticated(visitor_id) => {
-                        // we are authenticated by a scan, navigate
-                        // towards the secure area
-                    }
                     WsResponse::DoubleConnection => {
                         // somebody opened another tab with same app
                         // we have to show this is not possible
                         // and disconnect
+                    }
+                    WsResponse::Attribution(authenticated_token) => {
+                        log::info!("Received attribution request");
+                        // We have successfully scanned the token
+                        // and received an attribution request.
+                        // Lets set our authenticated token!
+                        token::set_token(Some(authenticated_token));
+                        // and now navigate to the authenticated
+                        // part of the application
+                        self.router_agent
+                            .send(ChangeRoute(AppRoute::DashBoard.into()));
                     }
                 }
             }
@@ -167,6 +179,7 @@ impl Component for Root {
                     match route {
                         AppRoute::Login => html!{<Login />},
                         AppRoute::Index => html!{<Index />},
+                        AppRoute::DashBoard => html!{<DashBoard />},
                     }
                 } else {
                     // 404 when route matches no component

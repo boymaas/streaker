@@ -1,11 +1,16 @@
 // Now link the source of the attribution
 // to the websocket channel, and generate
 // a new token and send it over the websocket
+use crate::jwt;
+use crate::web::ws::{send_response, Sessions};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 use warp;
+use warp::reply::Json;
+
+use streaker_common::ws::WsResponse;
 
 mod custom_date_parser {
     use chrono::{DateTime, TimeZone, Utc};
@@ -31,7 +36,8 @@ mod custom_date_parser {
 #[derive(Deserialize, Debug)]
 pub struct Claim {
     action: String,
-    source: Uuid,
+    #[serde(rename = "source")]
+    suuid: Uuid,
     #[serde(with = "custom_date_parser")]
     exp: DateTime<Utc>,
     visitorid: String,
@@ -43,7 +49,22 @@ pub struct Attribution {
     claim: Claim,
 }
 
-pub fn attribution(attr: Attribution) -> warp::reply::Json {
+// when we receive an attribution, and we have a session
+// which matches the suuid of the attribution. We can authenticate
+// that session with the correct visitor id
+pub async fn attribution(
+    attr: Attribution,
+    ws_sessions: Sessions,
+) -> Result<Json, warp::reject::Rejection> {
     log::info!("{:?}", attr);
-    warp::reply::json(&json!({"success": true}))
+    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.suuid) {
+        // now we have the channel so we can generate a new authenticated token
+        // and send the update over the channel.
+        // make sure the token has the same suuid, as this is tied to the websocket.
+        let auth_token = jwt::generate_authenticated_token(attr.claim.suuid, attr.claim.visitorid);
+        send_response(ws_channel, &WsResponse::Attribution(auth_token));
+        Ok(warp::reply::json(&json!({"success": true})))
+    } else {
+        Err(warp::reject::not_found())
+    }
 }

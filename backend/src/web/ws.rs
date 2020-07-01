@@ -12,9 +12,9 @@ use streaker_common::ws::{WsRequest, WsResponse};
 pub type WsChannel = mpsc::UnboundedSender<Result<Message, warp::Error>>;
 pub type Sessions = Arc<RwLock<HashMap<Uuid, WsChannel>>>;
 
-fn send_response(tx: &mut WsChannel, ws_response: WsResponse) {
+pub fn send_response(tx: &WsChannel, ws_response: &WsResponse) {
     tx.send(Ok(Message::text(
-        serde_json::to_string(&ws_response).unwrap(),
+        serde_json::to_string(ws_response).unwrap(),
     )))
     .unwrap();
 }
@@ -34,8 +34,8 @@ pub async fn handle(sessions: Sessions, suuid: Uuid, socket: warp::ws::WebSocket
 
     // store the sender in our sessions
     // if we had an open connection, close that one
-    if let Some(mut old_tx) = sessions.write().await.insert(suuid, tx.clone()) {
-        send_response(&mut old_tx, WsResponse::DoubleConnection);
+    if let Some(old_tx) = sessions.write().await.insert(suuid, tx.clone()) {
+        send_response(&old_tx, &WsResponse::DoubleConnection);
     }
 
     log::info!("{:?}", sessions.read().await.keys());

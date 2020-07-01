@@ -25,10 +25,10 @@ pub async fn start() {
     // build a filter which clones our Arc on each
     // new connection request.
     let websocket_sessions = ws::Sessions::default();
-    let websocket_sessions = warp::any().map(move || websocket_sessions.clone());
+    let websocket_sessions_any = warp::any().map(move || websocket_sessions.clone());
     let websocket = warp::path!("ws" / Uuid)
         .and(warp::ws())
-        .and(websocket_sessions)
+        .and(websocket_sessions_any.clone())
         .map(|suid: Uuid, ws: warp::ws::Ws, sessions| {
             ws.on_upgrade(move |socket| ws::handle(sessions, suid, socket))
         });
@@ -40,7 +40,8 @@ pub async fn start() {
         // I specify the json body here, and it magically deserialises
         // in the signature of the map beneath
         .and(warp::body::json())
-        .map(anode::attribution);
+        .and(websocket_sessions_any.clone())
+        .and_then(anode::attribution);
 
     let routes = websocket
         .or(attribution)
