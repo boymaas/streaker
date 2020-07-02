@@ -1,36 +1,24 @@
 use anyhow::Result;
 use dotenv;
-use refinery::config::{Config, ConfigDbType};
-use url::Url;
+use include_dir::{include_dir, Dir};
+use sqlx_pg_migrate;
+use tokio;
 
-mod embedded {
-    use refinery::embed_migrations;
-    embed_migrations!("migrations");
+// Use include_dir! to include your migrations into your binary.
+// The path here is relative to your cargo root.
+static MIGRATIONS: Dir = include_dir!("migrations");
+
+pub async fn migrate(db_url: &str) -> Result<(), sqlx_pg_migrate::Error> {
+    sqlx_pg_migrate::migrate(&db_url, &MIGRATIONS).await
 }
 
-// Migration is run synchronously since sqlx is not natively
-// supported by Refinery.
-fn main() -> Result<()> {
-    dotenv::dotenv().ok();
+// Somewhere, probably in main, call the migrate function with your DB URL
+// and the included migrations.
+#[tokio::main]
+async fn main() -> Result<()> {
+    let db_url = dotenv::var("DATABASE_URL").unwrap();
 
-    let db_url = Url::parse(&dotenv::var("STREAKER_DATABASE_URL")?)?;
-    let db_host = db_url.host().expect("host to be defined");
-    let db_port = db_url.port().expect("port to be defined");
-    let db_user = db_url.username();
-    let db_pass = db_url.password().expect("password to be defined");
-    let db_name = db_url.path();
-
-    // Refinery and sqlx seem to be using configuration key
-    // differently. Thus we need to set it like so
-    let mut conn = Config::new(ConfigDbType::Postgres)
-        .set_db_user(&db_user)
-        .set_db_pass(&db_pass)
-        .set_db_host(&db_host.to_string())
-        .set_db_port(&db_port.to_string())
-        .set_db_name(&db_name[1..]);
-
-    println!("Running migrations");
-    embedded::migrations::runner().run(&mut conn).unwrap();
+    migrate(&db_url).await?;
 
     Ok(())
 }

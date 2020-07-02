@@ -5,7 +5,13 @@ use anyhow::Result;
 use dotenv::dotenv;
 
 mod jwt;
+mod model;
 mod web;
+
+#[cfg(test)]
+mod migrate;
+#[cfg(test)]
+mod testutil;
 
 use sqlx::postgres::PgPool;
 
@@ -16,7 +22,7 @@ async fn main() -> Result<()> {
 
     let pool = PgPool::builder()
         .max_size(5) // maximum number of connections in the pool
-        .build(&dotenv::var("STREAKER_DATABASE_URL")?)
+        .build(&dotenv::var("DATABASE_URL")?)
         .await?;
 
     // Match any request and return hello world!
