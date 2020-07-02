@@ -1,12 +1,16 @@
+use anyhow::Result;
+use dotenv;
 use refinery::config::{Config, ConfigDbType};
-use std::env;
 use url::Url;
 
-mod migrations;
+mod embedded {
+    use refinery::embed_migrations;
+    embed_migrations!("migrations");
+}
 
 // Migration is run synchronously since sqlx is not natively
 // supported by Refinery.
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     dotenv::dotenv().ok();
 
     let db_url = Url::parse(&dotenv::var("STREAKER_DATABASE_URL")?)?;
@@ -24,7 +28,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_db_host(&db_host.to_string())
         .set_db_port(&db_port.to_string())
         .set_db_name(&db_name[1..]);
+
     println!("Running migrations");
-    migrations::runner().run(&mut conn)?;
+    embedded::migrations::runner().run(&mut conn).unwrap();
+
     Ok(())
 }
