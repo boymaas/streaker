@@ -94,7 +94,10 @@ impl Component for Root {
                 // we have a token, as such check if its authenticated
                 // and ifso navigate towards the logged in area
                 if token::is_authenticated() {
-                    log::info!("Authenticated token")
+                    log::info!("Authenticated token");
+
+                    self.router_agent
+                        .send(ChangeRoute(AppRoute::DashBoard.into()));
                 }
 
                 // in any case, we can open our websocket connection
@@ -103,11 +106,6 @@ impl Component for Root {
                 // now build up a websocket connection
                 // we know we have a token, so we can unwrap
                 self.ws_connect(token::get_token_suuid().unwrap());
-
-                // lets navigate to authenticate area
-                //
-                self.router_agent
-                    .send(ChangeRoute(AppRoute::DashBoard.into()));
             }
         }
     }
@@ -142,6 +140,12 @@ impl Component for Root {
                         self.router_agent
                             .send(ChangeRoute(AppRoute::DashBoard.into()));
                     }
+                    WsResponse::MemberState(member_state) => {
+                        log::info!("{:?}", member_state);
+                    }
+                    WsResponse::Error(msg) => {
+                        log::error!("{:?}", msg);
+                    }
                 }
             }
 
@@ -152,7 +156,7 @@ impl Component for Root {
                 log::info!("WsAction {:?}", action);
                 match action {
                     WsAction::Lost => log::info!("Lost connection, trying to reconnect"),
-                    _ => {}
+                    ws_action => log::warn!("Unhandled WsAction {:?}", ws_action),
                 }
             }
             _ => log::warn!("Uncaught Msg: {:?}", msg),

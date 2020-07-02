@@ -3,12 +3,12 @@ use sqlx::postgres::PgPool;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Member {
-    visitorid: String,
-    bucket: i32,
-    streak_total: i32,
-    streak_bucket: i32,
-    balance: f64,
-    email: Option<String>,
+    pub visitorid: String,
+    pub bucket: i32,
+    pub streak_total: i32,
+    pub streak_bucket: i32,
+    pub balance: f64,
+    pub email: Option<String>,
 }
 
 impl Member {
@@ -17,6 +17,17 @@ impl Member {
             visitorid: visitorid.to_string(),
             ..Self::default()
         }
+    }
+
+    pub async fn fetch(pool: &PgPool, visitorid: &str) -> Result<Member> {
+        let member: Member = sqlx::query_as!(
+            Member,
+            "SELECT * FROM members WHERE visitorid = $1",
+            visitorid
+        )
+        .fetch_one(pool)
+        .await?;
+        Ok(member)
     }
 
     pub async fn add(pool: &PgPool, visitorid: &str) -> Result<Member> {
@@ -43,6 +54,10 @@ mod tests {
 
         // Now create our member
         let member = Member::add(&pool, "VISITORID").await.unwrap();
+        assert_eq!(member, Member::new("VISITORID"));
+
+        // let fetch our member
+        let member = Member::fetch(&pool, "VISITORID").await.unwrap();
         assert_eq!(member, Member::new("VISITORID"));
     }
 }

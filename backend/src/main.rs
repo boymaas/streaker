@@ -2,7 +2,7 @@
 // #![deny(warnings)]
 
 use anyhow::Result;
-use dotenv::dotenv;
+use dotenv;
 
 mod jwt;
 mod model;
@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
         .await?;
 
     // Match any request and return hello world!
-    web::start(&pool).await;
+    web::start(pool).await;
 
     Ok(())
 }

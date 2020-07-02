@@ -44,14 +44,14 @@ pub fn generate_token() -> String {
     .unwrap()
 }
 
-pub fn generate_authenticated_token(suuid: Uuid, visitorid: String) -> String {
+pub fn generate_authenticated_token(suuid: &Uuid, visitorid: &String) -> String {
     // TODO: make the company and concept enviroment
     // varables
     let my_claims = Claims {
         exp: chrono::Utc::now().timestamp() as u64 + 24 * 60 * 60,
         suuid: Uuid::new_v4(),
         authenticated: true,
-        visitorid: Some(visitorid),
+        visitorid: Some(visitorid.into()),
         company: "OPES Unite".to_owned(),
         concept: "Streaker".to_owned(),
     };

@@ -7,7 +7,7 @@ mod ws;
 
 use uuid::Uuid;
 
-pub async fn start(pool: &PgPool) {
+pub async fn start(pool: PgPool) {
     let log = warp::log("streaker");
 
     let api = warp::any().map(|| "OPES Unite Streaker API");
@@ -35,6 +35,7 @@ pub async fn start(pool: &PgPool) {
         });
 
     // the attribution from the access node
+    let db_pool_any = warp::any().map(move || pool.clone());
     let attribution = warp::post()
         .and(warp::path!("api" / "v1" / "anode" / "attribution"))
         // NOTE: how the type system works here
@@ -42,6 +43,7 @@ pub async fn start(pool: &PgPool) {
         // in the signature of the map beneath
         .and(warp::body::json())
         .and(websocket_sessions_any.clone())
+        .and(db_pool_any.clone())
         .and_then(anode::attribution);
 
     let routes = websocket
