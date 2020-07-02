@@ -34,12 +34,12 @@ impl Member {
 #[cfg(test)]
 mod tests {
     use super::Member;
-    use crate::testutil as tu;
+    use crate::testdb::prepare_database;
 
     #[tokio::test]
     async fn member_add() {
         // drops and migrates the test database
-        let pool = tu::prepare_database().await;
+        let pool = prepare_database().await;
 
         // Now create our member
         let member = Member::add(&pool, "VISITORID").await.unwrap();

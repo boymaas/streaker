@@ -11,7 +11,7 @@ mod web;
 #[cfg(test)]
 mod migrate;
 #[cfg(test)]
-mod testutil;
+mod testdb;
 
 use sqlx::postgres::PgPool;
 
