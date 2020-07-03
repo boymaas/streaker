@@ -9,7 +9,7 @@ use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 
-use streaker_common::ws::{WsRequest, WsResponse};
+use streaker_common::ws::{MemberState, WsRequest, WsResponse};
 
 mod components;
 mod route;
@@ -33,6 +33,8 @@ struct Root {
 
     ws_service: WebSocketService,
     ws: Option<WebSocketTask>,
+
+    member_state: Option<MemberState>,
 }
 
 #[derive(Debug)]
@@ -68,6 +70,7 @@ impl Component for Root {
             fetch_task: None,
             ws_service: WebSocketService::new(),
             ws: None,
+            member_state: None,
         }
     }
 
@@ -152,6 +155,7 @@ impl Component for Root {
                     }
                     WsResponse::MemberState(member_state) => {
                         log::info!("{:?}", member_state);
+                        self.member_state = Some(member_state);
                     }
                     WsResponse::Error(msg) => {
                         log::error!("{:?}", msg);
@@ -188,27 +192,27 @@ impl Component for Root {
                 <div class="content">
 
                 <Header />
-            {
-                if let Some(route) = &self.current_route {
-                    match route {
-                        AppRoute::Login => html!{<Login />},
-                        AppRoute::Index => html!{<Index />},
-                        AppRoute::DashBoard => html!{<DashBoard />},
+                {
+                    if let Some(route) = &self.current_route {
+                        match route {
+                            AppRoute::Login => html!{<Login />},
+                            AppRoute::Index => html!{<Index />},
+                            AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
+                        }
+                    } else {
+                        // 404 when route matches no component
+                        html! { "No child component available" }
                     }
-                } else {
-                    // 404 when route matches no component
-                    html! { "No child component available" }
                 }
-            }
 
 
-                </div>
+            </div>
                 </div>
 
                 <Footer />
 
 
-            </>
+                </>
 
         }
     }

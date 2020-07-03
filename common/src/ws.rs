@@ -8,7 +8,7 @@ type Token = String;
 pub enum WsRequest {}
 
 // Member state
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MemberState {
     pub visitorid: String,
     pub bucket: i32,
