@@ -24,6 +24,11 @@ pub struct MemberState {
 pub enum WsResponse {
     Connected,
     Attribution(Token),
+    // when tring to connect to wss
+    // with a bad token, we give back
+    // a valid auth token so frontend
+    // can reconnect
+    BadToken(Token),
     MemberState(MemberState),
     DoubleConnection,
     Error(String),

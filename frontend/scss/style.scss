@@ -5,6 +5,8 @@ $background: #250561;
 $green: #BBFF00;
 $purple: #C5A6FF;
 
+@import "shared";
+
 body {
     background: url(/img/background.jpg) no-repeat center top fixed;
     background-color: $background;
@@ -88,6 +90,8 @@ body {
 @import "index";
 
 @import "login";
+
+@import "dashboard";
 
 #footer {
     margin-top: 40px;

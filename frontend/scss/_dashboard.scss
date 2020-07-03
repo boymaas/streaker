@@ -1,0 +1,58 @@
+#dashboard {
+    .gauges {
+        width: 600px;
+        margin: 120px auto 80px auto;
+
+        h2 {
+            opacity: 0.77;
+            font-size: 24px;
+            color: #FFFFFF;
+            letter-spacing: 4.17px;
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+        .gauge {
+            font-size: 61.44px;
+            font-weight: 900px;
+            color: #BBFF00;
+            letter-spacing: 5.3px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .unit {
+            font-size: 16px;
+            color: #FFF;
+            letter-spacing: 1.38px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .mining-ratio {
+            .gauge {
+                color: #FFF;
+            }
+            .unit span:nth-child(1) {
+                font-weight: 700;
+            }
+        }
+    }
+
+    p {
+        opacity: 0.73;
+        font-size: 16px;
+        color: #FFFFFF;
+        letter-spacing: 5px;
+        text-align: center;
+    }
+
+    .start-scanning {
+        text-align: center;
+        margin-top: 80px;
+        a.button {
+            @include big-green-button;
+        }
+    }
+
+
+}

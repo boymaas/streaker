@@ -118,7 +118,11 @@ impl Component for Root {
 
                 // now build up a websocket connection
                 // we know we have a token, so we can unwrap
-                self.ws_connect(token::get_token_suuid().unwrap());
+
+                // we assume the token is valid here, if its not valid
+                // we will receive as BadToken response, with a new
+                // token, which we will use.
+                self.ws_connect(&token::get_token().unwrap());
             }
         }
     }
@@ -130,13 +134,20 @@ impl Component for Root {
                 // we received a new jwt token, lets set it
                 // and (re)connect our websocket
                 token::set_token(Some(jwt_token.token));
-                self.ws_connect(token::get_token_suuid().unwrap());
+                self.ws_connect(&token::get_token().unwrap());
             }
             Msg::TokenFetchError => {}
             Msg::WsReady(Ok(response)) => {
                 log::info!("WsReady {:?}", response);
                 match response {
                     WsResponse::Connected => log::info!("Connected"),
+                    WsResponse::BadToken(token) => {
+                        // tried connecting via the websocket and the
+                        // token is either expired, or invalid signature
+                        // so we change our token and reconnect
+                        token::set_token(Some(token.clone()));
+                        self.ws_connect(&token);
+                    }
                     WsResponse::DoubleConnection => {
                         // somebody opened another tab with same app
                         // we have to show this is not possible
@@ -239,7 +250,7 @@ impl From<WsAction> for Msg {
 }
 
 impl Root {
-    fn ws_connect(&mut self, suuid: Uuid) {
+    fn ws_connect(&mut self, token: &str) {
         // NOTE: this is interesting, I specify Json(data) in the type
         // signature. The fact that the callback has this type signals
         // to the ws_service what to send
@@ -251,7 +262,7 @@ impl Root {
         let task = self
             .ws_service
             .connect(
-                &format!("ws://localhost:8080/ws/{}", suuid),
+                &format!("ws://localhost:8080/ws/{}", token),
                 callback,
                 notification,
             )

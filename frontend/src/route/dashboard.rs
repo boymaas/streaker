@@ -36,14 +36,29 @@ impl Component for DashBoard {
 
     fn view(&self) -> Html {
         html! {
-        <>
+        <div id="dashboard">
+            <div class="gauges grid halves">
+                <div class="streak col">
+                   <h2>{ "Streak" }</h2>
+                   // { "self.props.member_state.streak_total" }
+                   <div class="gauge">{"0"}</div>
+                   <div class="unit">{"days"}</div>
+                </div>
+                <div class="mining-ratio col">
+                   <h2>{ "Mining ratio" }</h2>
+                   <div class="gauge">{ "40" }</div>
+                   <div class="unit"><span>{"UBUCKS"}</span><span>{"/100 SCANs"}</span></div>
+                </div>
+            </div>
 
-            <h1>{ "DashBoard " }</h1>
+            <p>{ "NEXT LEVEL UP AT 90 DAYS STREAK 50 UB/100" }</p>
 
-            <p>{ format!("{:#?}", self.props) } </p>
+            <div class="start-scanning">
+                <a class="button">{ "START" }</a>
+            </div>
 
-
-        </>
+            // <p>{ format!("{:#?}", self.props) }</p>
+        </div>
 
         }
     }

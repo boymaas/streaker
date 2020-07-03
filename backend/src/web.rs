@@ -23,19 +23,23 @@ pub async fn start(pool: PgPool) {
         .allow_method("GET")
         .allow_method("POST");
 
+    // db_pool arc copy filter
+    let db_pool_any = warp::any().map(move || pool.clone());
+
     // build a filter which clones our Arc on each
     // new connection request.
     let websocket_sessions = ws::Sessions::default();
     let websocket_sessions_any = warp::any().map(move || websocket_sessions.clone());
-    let websocket = warp::path!("ws" / Uuid)
+
+    let websocket = warp::path!("ws" / String)
         .and(warp::ws())
         .and(websocket_sessions_any.clone())
-        .map(|suid: Uuid, ws: warp::ws::Ws, sessions| {
-            ws.on_upgrade(move |socket| ws::handle(sessions, suid, socket))
+        .and(db_pool_any.clone())
+        .map(|token: String, ws: warp::ws::Ws, sessions, pool| {
+            ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket))
         });
 
     // the attribution from the access node
-    let db_pool_any = warp::any().map(move || pool.clone());
     let attribution = warp::post()
         .and(warp::path!("api" / "v1" / "anode" / "attribution"))
         // NOTE: how the type system works here

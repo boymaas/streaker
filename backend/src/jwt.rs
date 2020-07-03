@@ -1,20 +1,23 @@
 use chrono;
 use dotenv::dotenv;
+pub use jsonwebtoken::TokenData;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
+use anyhow::Result;
+
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    exp: u64,
-    suuid: Uuid,
-    authenticated: bool,
-    visitorid: Option<String>,
-    company: String,
-    concept: String,
+pub struct Claims {
+    pub exp: u64,
+    pub suuid: Uuid,
+    pub authenticated: bool,
+    pub visitorid: Option<String>,
+    pub company: String,
+    pub concept: String,
 }
 
 lazy_static! {
@@ -66,4 +69,10 @@ pub fn generate_authenticated_token(suuid: &Uuid, visitorid: &String) -> String 
     .unwrap()
 }
 
-fn fetch() {}
+pub fn decode_token(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+    decode::<Claims>(
+        &token,
+        &DecodingKey::from_secret(SECRET.as_ref()),
+        &Validation::new(Algorithm::HS256),
+    )
+}
