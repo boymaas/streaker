@@ -11,10 +11,13 @@ use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 
 use streaker_common::ws::{WsRequest, WsResponse};
 
-mod partials;
+mod components;
 mod route;
 mod services;
 mod util;
+
+use components::Footer;
+use components::Header;
 
 use services::api;
 use services::token;
@@ -184,7 +187,7 @@ impl Component for Root {
                 <div class="container" id="index">
                 <div class="content">
 
-                { partials::header() }
+                <Header />
             {
                 if let Some(route) = &self.current_route {
                     match route {
@@ -202,7 +205,7 @@ impl Component for Root {
                 </div>
                 </div>
 
-                { partials::footer() }
+                <Footer />
 
 
             </>
