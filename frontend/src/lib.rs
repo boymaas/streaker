@@ -46,12 +46,19 @@ impl Component for Root {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        // router agent runs on the background listening for route changes
+        // and when they occur, will send a Msg::Route over the link
+        //
+        // the fact you can specify Msg::Route as a function implies an
+        // enum is a function
         let router_agent = RouteAgent::bridge(link.callback(Msg::Route));
         let route_service: RouteService = RouteService::new();
         let route = route_service.get_route();
 
         Self {
             link,
+            // the switch is an derive macro on our routes
+            // transforming the url route to the enum value
             current_route: AppRoute::switch(route),
             router_agent,
             api: services::api::Api::new(),
