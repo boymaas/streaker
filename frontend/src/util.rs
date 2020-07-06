@@ -12,7 +12,7 @@ pub fn if_auth_borrow<'a, T: ?Sized>(a: &'a T, b: &'a T) -> &'a T {
     }
 }
 
-pub fn if_auth_move<T>(a: T, b: T) -> T {
+pub fn if_auth<T>(a: T, b: T) -> T {
     if token::is_authenticated() {
         a
     } else {

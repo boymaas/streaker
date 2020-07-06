@@ -3,7 +3,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::token;
-use crate::util::{if_auth_borrow, if_auth_move};
+use crate::util::{if_auth, if_auth_borrow};
 
 use crate::components::Menu;
 
@@ -27,9 +27,9 @@ impl Component for Header {
     fn view(&self) -> Html {
         html! {
             <>
-                <div id="header" class={ format!("grid thirds {}", if_auth_move("auth", "")) }>
+                <div id="header" class={ format!("grid thirds {}", if_auth("auth", "")) }>
                     <div class="col" id="logo">
-                        <RouterAnchor<AppRoute> route={ if_auth_move( AppRoute::DashBoard, AppRoute::Index ) }>
+                        <RouterAnchor<AppRoute> route={ if_auth( AppRoute::DashBoard, AppRoute::Index ) }>
                             <h1><span>{ "OPES Unite Streak Program" }</span></h1>
                         </RouterAnchor<AppRoute>>
                     </div>
@@ -44,7 +44,7 @@ impl Component for Header {
                     <div id="mobile-with-opes-screenshot"></div>
 
                     {
-                        if_auth_move(html! {<Menu />}, html! {})
+                        if_auth(html! {<Menu />}, html! {})
                     }
 
                 </div>

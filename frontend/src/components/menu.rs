@@ -3,7 +3,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::token;
-use crate::util::if_auth_move;
+use crate::util::if_auth;
 
 pub struct Menu {}
 
@@ -25,7 +25,7 @@ impl Component for Menu {
     fn view(&self) -> Html {
         html! {
             <>
-                <div id="menu" class={ format!("grid thirds {}", if_auth_move("auth", "")) }>
+                <div id="menu" class={ format!("grid thirds {}", if_auth("auth", "")) }>
                 <ul>
                    <li>{"DASHBOARD"}</li>
                    <li>{"CASHOUT"}</li>
