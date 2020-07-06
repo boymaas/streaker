@@ -51,9 +51,10 @@ impl Component for Menu {
 
                    { menu_item("dashboard", "DASHBOARD", AppRoute::DashBoard) }
 
+                   { menu_item("scans", "SCAN!", AppRoute::Scans) }
+
                    { menu_item("cashouts", "CASHOUTS", AppRoute::CashOuts) }
 
-                   { menu_item("scans", "SCANS", AppRoute::Scans) }
 
                 </ul>
 

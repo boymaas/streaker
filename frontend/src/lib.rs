@@ -105,6 +105,9 @@ impl Component for Root {
                 // NOTE: the fetch task must exist for the duration of the request
                 //       on a drop it will abort the request.
                 self.fetch_task = Some(self.api.token_fetch(callback).unwrap());
+
+                // Since we did not have a token, we are not authorized so go to index
+                self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
             } else {
                 // we have a token, as such check if its authenticated
                 // and ifso navigate towards the logged in area
@@ -113,6 +116,8 @@ impl Component for Root {
 
                     self.router_agent
                         .send(ChangeRoute(AppRoute::DashBoard.into()));
+                } else {
+                    self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
                 }
 
                 // in any case, we can open our websocket connection
