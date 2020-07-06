@@ -24,6 +24,8 @@ use services::token;
 
 use route::{dashboard::DashBoard, index::Index, login::Login, AppRoute};
 
+use crate::util::if_auth;
+
 struct Root {
     current_route: Option<AppRoute>,
     router_agent: Box<dyn Bridge<RouteAgent>>,
@@ -199,6 +201,7 @@ impl Component for Root {
     fn view(&self) -> Html {
         html! {
             <>
+                <div id="container-background" class={if_auth("auth", "")} ></div>
                 <div class="container" id="index">
                 <div class="content">
 

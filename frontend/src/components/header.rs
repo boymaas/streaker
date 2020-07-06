@@ -24,31 +24,33 @@ impl Component for Header {
     }
     fn view(&self) -> Html {
         html! {
-            <div id="header" class={ if_auth("grid thirds", "grid thirds auth") }>
-                <div class="col" id="logo">
-                    <RouterAnchor<AppRoute> route={ if_auth( &AppRoute::DashBoard, &AppRoute::Index ) }>
-                        <h1><span>{ "OPES Unite Streak Program" }</span></h1>
-                    </RouterAnchor<AppRoute>>
-                </div>
-                <div class="bigger filler"></div>
-                <div class="col conversion-rate ones">
-                    <span>{ "0.035" }</span>
-                    <span>
-                        <span>{ "USD" }</span>
-                        <span>{ "/UBUCK" }</span>
-                    </span>
-                </div>
-                <div id="mobile-with-opes-screenshot"></div>
+            <>
+                <div id="header" class={ format!("grid thirds {}", if_auth("auth", "")) }>
+                    <div class="col" id="logo">
+                        <RouterAnchor<AppRoute> route={ if_auth( &AppRoute::DashBoard, &AppRoute::Index ) }>
+                            <h1><span>{ "OPES Unite Streak Program" }</span></h1>
+                        </RouterAnchor<AppRoute>>
+                    </div>
+                    <div class="bigger filler"></div>
+                    <div class="col conversion-rate ones">
+                        <span>{ "0.035" }</span>
+                        <span>
+                            <span>{ "USD" }</span>
+                            <span>{ "/UBUCK" }</span>
+                        </span>
+                    </div>
+                    <div id="mobile-with-opes-screenshot"></div>
 
-                {
-                    if token::is_authenticated() {
-                        html! { <h2>{ "Menu" }</h2> }
-                    } else {
-                        html! {}
+                    {
+                        if token::is_authenticated() {
+                            html! { <h2>{ "Menu" }</h2> }
+                        } else {
+                            html! {}
+                        }
                     }
-                }
 
-            </div>
+                </div>
+            </>
         }
     }
 }
