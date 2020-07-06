@@ -50,9 +50,9 @@ impl Component for Login {
         html! {
 
             <div class="content" id="login">
-                <h2>{ "Scan with OPES ID app to Join" }</h2>
+                <h2>{ "Scan to start earning daily rewards" }</h2>
 
-                <p>{ "Install the App on your device, create an account on the OPES Network. Now you can scan this QrCode to join the OPES Unite Streak Program." }</p>
+                <p>{ "" }</p>
 
                 <div class="qrcode">
                     <RawHTML inner_html={result} />

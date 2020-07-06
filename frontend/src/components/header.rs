@@ -2,6 +2,9 @@ use crate::route::AppRoute;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+use crate::token;
+use crate::util::if_auth;
+
 pub struct Header {}
 
 pub enum Msg {}
@@ -21,9 +24,9 @@ impl Component for Header {
     }
     fn view(&self) -> Html {
         html! {
-            <div id="header" class="grid thirds">
+            <div id="header" class={ if_auth("grid thirds", "grid thirds auth") }>
                 <div class="col" id="logo">
-                    <RouterAnchor<AppRoute> route=AppRoute::Index>
+                    <RouterAnchor<AppRoute> route={ if_auth( &AppRoute::DashBoard, &AppRoute::Index ) }>
                         <h1><span>{ "OPES Unite Streak Program" }</span></h1>
                     </RouterAnchor<AppRoute>>
                 </div>
@@ -36,6 +39,15 @@ impl Component for Header {
                     </span>
                 </div>
                 <div id="mobile-with-opes-screenshot"></div>
+
+                {
+                    if token::is_authenticated() {
+                        html! { <h2>{ "Menu" }</h2> }
+                    } else {
+                        html! {}
+                    }
+                }
+
             </div>
         }
     }
