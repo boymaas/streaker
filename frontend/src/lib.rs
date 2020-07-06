@@ -24,7 +24,7 @@ use services::token;
 
 use route::{dashboard::DashBoard, index::Index, login::Login, AppRoute};
 
-use crate::util::if_auth;
+use crate::util::if_auth_move;
 
 struct Root {
     current_route: Option<AppRoute>,
@@ -201,7 +201,7 @@ impl Component for Root {
     fn view(&self) -> Html {
         html! {
             <>
-                <div id="container-background" class={if_auth("auth", "")} ></div>
+                <div id="container-background" class={if_auth_move("auth", "")} ></div>
                 <div class="container" id="index">
                 <div class="content">
 
