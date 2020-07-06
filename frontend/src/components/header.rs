@@ -43,11 +43,12 @@ impl Component for Header {
                     </div>
                     <div id="mobile-with-opes-screenshot"></div>
 
-                    {
-                        if_auth(html! {<Menu />}, html! {})
-                    }
-
                 </div>
+
+
+                {
+                    if_auth(html! {<Menu />}, html! {})
+                }
             </>
         }
     }

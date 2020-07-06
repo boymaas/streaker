@@ -212,6 +212,8 @@ impl Component for Root {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
+                            _ => html!{<p>{ "Missing implementation" }</p>}
+
                         }
                     } else {
                         // 404 when route matches no component
