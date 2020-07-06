@@ -18,12 +18,25 @@
                 text-align: right;
             }
 
-            a,a span {
+            a {
                 color: #fff;
                 font-size: 16px;
                 letter-spacing: 1.38px;
                 text-align: center;
                 text-decoration: none;
+
+
+                opacity: 0.6;
+
+                &:hover {
+                    opacity: 1.0;
+                }
+            }
+
+
+            &.current a {
+                font-weight: 600;
+                opacity: 1.0;
             }
         }
     }

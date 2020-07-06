@@ -4,7 +4,7 @@ pub mod login;
 
 use yew_router::prelude::*;
 
-#[derive(Switch, Debug, Clone)]
+#[derive(Switch, Debug, Clone, PartialEq)]
 pub enum AppRoute {
     #[to = "/scans"]
     Scans,

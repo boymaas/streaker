@@ -2,27 +2,34 @@ use crate::route::AppRoute;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::token;
-use crate::util::{if_auth, if_auth_borrow};
+use crate::util::if_auth;
 
 use crate::components::Menu;
 
-pub struct Header {}
+#[derive(Properties, Clone, Debug)]
+pub struct Props {
+    pub current_route: Option<AppRoute>,
+}
+
+pub struct Header {
+    props: Props,
+}
 
 pub enum Msg {}
 
 impl Component for Header {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {}
+        Self { props }
     }
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         true
     }
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
     }
     fn view(&self) -> Html {
         html! {
@@ -47,7 +54,7 @@ impl Component for Header {
 
 
                 {
-                    if_auth(html! {<Menu />}, html! {})
+                    if_auth(html! {<Menu current_route=&self.props.current_route />}, html! {})
                 }
             </>
         }

@@ -2,29 +2,41 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::route::AppRoute;
-use crate::util::if_auth;
 
-pub struct Menu {}
+#[derive(Properties, Clone, Debug)]
+pub struct Props {
+    pub current_route: Option<AppRoute>,
+}
 
-pub enum Msg {}
+pub struct Menu {
+    props: Props,
+}
 
 impl Component for Menu {
-    type Message = Msg;
-    type Properties = ();
+    type Message = ();
+    type Properties = Props;
 
-    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self {}
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self { props }
     }
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         true
     }
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
     }
     fn view(&self) -> Html {
         let menu_item = |class: &str, label: &str, route: AppRoute| {
+            let mut cl: String = class.to_owned();
+
+            if let Some(current_route) = &self.props.current_route {
+                if route == *current_route {
+                    cl = format!("{} current", class);
+                }
+            };
             html! {
-                <li class={ class }>
+                <li class={ cl }>
                     <RouterAnchor<AppRoute> route={ route }>
                         <span>{ label }</span>
                     </RouterAnchor<AppRoute>>

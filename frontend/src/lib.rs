@@ -205,12 +205,12 @@ impl Component for Root {
                 <div class="container" id="index">
                 <div class="content">
 
-                <Header />
+                <Header current_route=&self.current_route />
                 {
                     if let Some(route) = &self.current_route {
                         match route {
                             AppRoute::Login => html!{<Login />},
-                            AppRoute::Index => html!{<Index />},
+                            AppRoute::Index => html!{<Index  />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
                             _ => html!{<p>{ "Missing implementation" }</p>}
 
