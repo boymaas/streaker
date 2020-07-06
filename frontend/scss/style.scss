@@ -7,6 +7,13 @@ $purple: #C5A6FF;
 
 @import "shared";
 
+.no-impl {
+    font-size: 22px;
+    width: 300px;
+    display: block;
+    margin: 200px auto;
+}
+
 body {
     background: url(/img/background.jpg) no-repeat center top fixed;
     background-color: $background;

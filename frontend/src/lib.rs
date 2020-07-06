@@ -212,7 +212,7 @@ impl Component for Root {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
-                            _ => html!{<p>{ "Missing implementation" }</p>}
+                            _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
 
                         }
                     } else {
