@@ -35,12 +35,12 @@ pub async fn clean_database() {
     // other connections
     let template1_conn = conn_url().join("../template1").unwrap().to_string();
 
-    println!("MPL {}", template1_conn);
+    // println!("MPL {}", template1_conn);
     let mut client: PgConnection = Connect::connect(template1_conn).await.unwrap();
 
     let dbname = test_db_name();
 
-    println!("DBNAME {}", dbname);
+    // println!("DBNAME {}", dbname);
 
     // drop connections
     sqlx::query("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1")

@@ -8,29 +8,29 @@ create table members (
 	email varchar(255)
 );
 
-create table scansessions ( 
-	uuid uuid primary key,
-	visitorid varchar(128) references members(visitorid) not null,
-	started timestamp,
-	stopped timestamp,
-	status varchar(16)
-);
-
 create table anodes (
 	label varchar(32) primary key,
 	description varchar(255)
 );
 
+
+create table scansessions ( 
+	uuid uuid primary key,
+	visitorid varchar(128) references members(visitorid) not null,
+	begin timestamp with time zone
+);
+
+
 create table scans (
 	scansession uuid references scansessions(uuid) not null,
 	anode varchar(128) references anodes(label) not null,
-	tstamp timestamp
+	tstamp timestamp with time zone
 );
 
 create table events (
 	uuid uuid primary key,
 	visitorid varchar(128) references members(visitorid),
-	tstamp timestamp,
+	tstamp timestamp with time zone,
 	label varchar(16),
 	data jsonb
 );

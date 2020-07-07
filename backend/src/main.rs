@@ -4,6 +4,7 @@
 use anyhow::Result;
 use dotenv;
 
+mod dbstate;
 mod jwt;
 mod model;
 mod web;
@@ -24,6 +25,9 @@ async fn main() -> Result<()> {
         .max_size(5) // maximum number of connections in the pool
         .build(&dotenv::var("DATABASE_URL")?)
         .await?;
+
+    // Ensure we have a valid database state on startup
+    dbstate::ensure(&pool).await;
 
     // Match any request and return hello world!
     web::start(pool).await;
