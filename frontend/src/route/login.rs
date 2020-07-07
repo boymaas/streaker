@@ -28,12 +28,8 @@ impl Component for Login {
     }
 
     fn view(&self) -> Html {
-        // let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Fopesdentist.monetashi.io&source=ANID";
-
-        let result = qrcode::generate(
-            "opesdentist",
-            &token::get_token_suuid().unwrap().to_string(),
-        );
+        let suuid = &token::get_token_suuid().unwrap().to_string();
+        let result = qrcode::generate("opesdentist", &format!("login:{}", suuid));
 
         html! {
 

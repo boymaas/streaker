@@ -36,14 +36,51 @@ mod custom_date_parser {
     }
 }
 
+mod source_parser {
+    use super::{Source, SourceAction};
+    use serde::{self, Deserialize, Deserializer};
+    use uuid::Uuid;
+
+    pub fn parse<'de, D>(deserializer: D) -> Result<Source, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let source = String::deserialize(deserializer)?;
+        if let [action, suuid, ..] = source.split(":").collect::<Vec<&str>>().as_slice() {
+            Ok(Source {
+                suuid: Uuid::parse_str(suuid).map_err(serde::de::Error::custom)?,
+                action: match *action {
+                    "login" => SourceAction::Login,
+                    "scan" => SourceAction::Scan,
+                    _ => unreachable!(),
+                },
+            })
+        } else {
+            Err("problem parsing source").map_err(serde::de::Error::custom)
+        }
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Claim {
     action: String,
-    #[serde(rename = "source")]
-    suuid: Uuid,
+    #[serde(deserialize_with = "source_parser::parse")]
+    source: Source,
     #[serde(with = "custom_date_parser")]
     exp: DateTime<Utc>,
     visitorid: String,
+}
+
+#[derive(Debug)]
+pub struct Source {
+    pub action: SourceAction,
+    pub suuid: Uuid,
+}
+
+#[derive(Debug)]
+pub enum SourceAction {
+    Login,
+    Scan,
 }
 
 impl std::convert::Into<MemberState> for member::Member {
@@ -65,21 +102,51 @@ pub struct Attribution {
     claim: Claim,
 }
 
-// when we receive an attribution, and we have a session
-// which matches the suuid of the attribution. We can authenticate
-// that session with the correct visitor id
+// We receive an attribution from an access node, this can be
+// either from a scan request of a login request. We dispatch
+// to the appropiate handler.
 pub async fn attribution(
     attr: Attribution,
     ws_sessions: Sessions,
     pool: PgPool,
 ) -> Result<Json, warp::reject::Rejection> {
-    log::info!("{:?}", attr);
-    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.suuid) {
+    match attr.claim.source.action {
+        SourceAction::Login => attribution_login(attr, ws_sessions, pool).await,
+        SourceAction::Scan => attribution_scan(attr, ws_sessions, pool).await,
+    }
+}
+
+// Handle the scan attribution, looking up the scansession for the
+// logged in member. NOTE: the visitor_id for each access_node differs.
+async fn attribution_scan(
+    attr: Attribution,
+    ws_sessions: Sessions,
+    pool: PgPool,
+) -> Result<Json, warp::reject::Rejection> {
+    log::info!("SCAN: {:?}", attr);
+    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
+        // link them together &attr.claim.visitorid
+        Ok(warp::reply::json(&json!({"success": true})))
+    } else {
+        Err(warp::reject::not_found())
+    }
+}
+
+// when we receive an attribution, and we have a session
+// which matches the suuid of the attribution. We can authenticate
+// that session with the correct visitor id
+async fn attribution_login(
+    attr: Attribution,
+    ws_sessions: Sessions,
+    pool: PgPool,
+) -> Result<Json, warp::reject::Rejection> {
+    log::info!("LOGIN: {:?}", attr);
+    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
         // now we have the channel so we can generate a new authenticated token
         // and send the update over the channel.
         // make sure the token has the same suuid, as this is tied to the websocket.
         let auth_token =
-            jwt::generate_authenticated_token(&attr.claim.suuid, &attr.claim.visitorid);
+            jwt::generate_authenticated_token(&attr.claim.source.suuid, &attr.claim.visitorid);
         send_response(ws_channel, &WsResponse::Attribution(auth_token));
 
         // now also send out member state

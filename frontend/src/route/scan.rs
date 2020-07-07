@@ -1,8 +1,12 @@
-use crate::route::AppRoute;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
 use streaker_common::ws::MemberState;
+
+use crate::qrcode;
+use crate::route::AppRoute;
+use crate::token;
+use crate::util::RawHTML;
 
 pub struct Scan {
     props: Props,
@@ -35,9 +39,14 @@ impl Component for Scan {
     }
 
     fn view(&self) -> Html {
+        let suuid = &token::get_token_suuid().unwrap().to_string();
+        let qrcode = qrcode::generate("opesdentist", &format!("scan:{}", suuid));
+
         html! {
         <div id="scan">
-            // <p>{ format!("{:#?}", self.props) }</p>
+            <div class="qrcode">
+                <RawHTML inner_html={qrcode} />
+            </div>
         </div>
 
         }
