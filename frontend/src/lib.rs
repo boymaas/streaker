@@ -12,6 +12,7 @@ use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 use streaker_common::ws::{MemberState, WsRequest, WsResponse};
 
 mod components;
+mod qrcode;
 mod route;
 mod services;
 mod util;
@@ -22,7 +23,7 @@ use components::Header;
 use services::api;
 use services::token;
 
-use route::{dashboard::DashBoard, index::Index, login::Login, AppRoute};
+use route::{dashboard::DashBoard, index::Index, login::Login, scan::Scan, AppRoute};
 
 use crate::util::if_auth;
 
@@ -217,6 +218,7 @@ impl Component for Root {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
+                            AppRoute::Scans => html!{<Scan member_state=&self.member_state />},
                             _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
 
                         }

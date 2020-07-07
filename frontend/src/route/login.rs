@@ -1,8 +1,8 @@
+use yew::prelude::*;
+
+use crate::qrcode;
 use crate::token;
 use crate::util::RawHTML;
-use qrcode_generator::QrCodeEcc;
-use url::Url;
-use yew::prelude::*;
 
 pub struct Login {
     link: ComponentLink<Self>,
@@ -30,22 +30,10 @@ impl Component for Login {
     fn view(&self) -> Html {
         // let url = "https://mobile.opes.pe/opesapp/check-in?name=OpesUnite&url=https%3A%2F%2Fopesdentist.monetashi.io&source=ANID";
 
-        let anode_url = Url::parse("https://opesdentist.monetashi.io").unwrap();
-
-        let url = Url::parse_with_params(
-            "https://mobile.opes.pe/opesapp/check-in",
-            &[
-                ("name", "Streaker Login"),
-                ("url", &anode_url.to_string()),
-                ("source", &token::get_token_suuid().unwrap().to_string()),
-            ],
-        )
-        .unwrap();
-
-        log::info!("{:?}", url);
-
-        let result: String =
-            qrcode_generator::to_svg_to_string(url.to_string(), QrCodeEcc::Low, 400, None).unwrap();
+        let result = qrcode::generate(
+            "opesdentist",
+            &token::get_token_suuid().unwrap().to_string(),
+        );
 
         html! {
 
