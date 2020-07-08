@@ -13,9 +13,11 @@ use streaker_common::ws::{WsRequest, WsResponse};
 
 use crate::jwt::{self, Claims, TokenData};
 use crate::model::Member;
+use crate::model::ScanSession;
 
 pub type WsChannel = mpsc::UnboundedSender<Result<Message, warp::Error>>;
-pub type Sessions = Arc<RwLock<HashMap<Uuid, WsChannel>>>;
+pub type VisitorId = String;
+pub type Sessions = Arc<RwLock<HashMap<Uuid, (Option<VisitorId>, WsChannel)>>>;
 
 pub fn send_response(tx: &WsChannel, ws_response: &WsResponse) {
     tx.send(Ok(Message::text(
@@ -52,11 +54,10 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
 
     // store the sender in our sessions
     // if we had an open connection, close that one
-    if let Some(old_tx) = sessions
-        .write()
-        .await
-        .insert(token_data.claims.suuid, tx.clone())
-    {
+    if let Some((_, old_tx)) = sessions.write().await.insert(
+        token_data.claims.suuid,
+        (token_data.claims.visitorid.clone(), tx.clone()),
+    ) {
         // the interface will respond to this action
         // by closing the websocket connection and logging out.
         send_response(&old_tx, &WsResponse::DoubleConnection);
@@ -83,6 +84,12 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
         // visitorid is also always defined when we are authenticated
         if let Ok(member) = Member::fetch(&pool, &visitorid).await {
             send_response(&tx, &WsResponse::MemberState(member.into()));
+
+            if let Ok(scan_session) = ScanSession::current(&pool, &visitorid).await {
+                if let Ok(scan_session_state) = scan_session.scan_session_state(&pool).await {
+                    send_response(&tx, &WsResponse::ScanSessionState(scan_session_state));
+                }
+            }
         } else {
             log::error!("member must exist on authenticated connection!")
         };

@@ -1,4 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 type VisitorId = String;
 type Token = String;
@@ -18,6 +20,15 @@ pub struct MemberState {
     pub email: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ScanSessionState {
+    pub uuid: Uuid,
+    pub count: u16,
+    pub total: u16,
+    pub next_anode: Option<String>,
+    pub begin: DateTime<Utc>,
+}
+
 // This is the response after
 // successfull connecion
 #[derive(Serialize, Deserialize, Debug)]
@@ -30,6 +41,7 @@ pub enum WsResponse {
     // can reconnect
     BadToken(Token),
     MemberState(MemberState),
+    ScanSessionState(ScanSessionState),
     DoubleConnection,
     Error(String),
 }

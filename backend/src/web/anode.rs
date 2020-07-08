@@ -3,6 +3,7 @@
 // a new token and send it over the websocket
 use crate::jwt;
 use crate::web::ws::{send_response, Sessions};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::json;
@@ -12,6 +13,7 @@ use warp;
 use warp::reply::Json;
 
 use crate::model::member;
+use crate::model::scan_session::ScanSession;
 
 use streaker_common::ws::{MemberState, WsResponse};
 
@@ -117,19 +119,52 @@ pub async fn attribution(
 }
 
 // Handle the scan attribution, looking up the scansession for the
-// logged in member. NOTE: the visitor_id for each access_node differs.
+// logged in member.
+async fn attribution_scan_inner(
+    attr: Attribution,
+    ws_sessions: Sessions,
+    pool: PgPool,
+) -> Result<Json> {
+    // lets get the visitorid from this ws_connection, this visitorid
+    // has been set on a websocket connection with an authenticated token.
+    if let Some((Some(visitorid), ws_channel)) =
+        ws_sessions.read().await.get(&attr.claim.source.suuid)
+    {
+        // link them together &attr.claim.visitorid
+        let scan_session = ScanSession::current(&pool, visitorid).await?;
+
+        scan_session
+            .register_scan(&pool, &attr.access_node_name)
+            .await?;
+
+        let scan_session_state = scan_session.scan_session_state(&pool).await?;
+
+        send_response(
+            ws_channel,
+            &WsResponse::ScanSessionState(scan_session_state),
+        );
+        Ok(warp::reply::json(&json!({"success": true})))
+    } else {
+        Err(anyhow::anyhow!("Session with visitorID not present!"))
+    }
+}
+
 async fn attribution_scan(
     attr: Attribution,
     ws_sessions: Sessions,
     pool: PgPool,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("SCAN: {:?}", attr);
-    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
-        // link them together &attr.claim.visitorid
-        Ok(warp::reply::json(&json!({"success": true})))
-    } else {
-        Err(warp::reject::not_found())
-    }
+
+    // TODO: the pattern here is warp filters need to return
+    // a warp reply or reject, but errors do not map to the reject.
+    // We need to find a pattern for this.
+    //
+    // The introcution of the inner is just to make the map_err happen
+    // on one spot.
+    attribution_scan_inner(attr, ws_sessions, pool)
+        .await
+        .map_err(|_| warp::reject::not_found())
 }
 
 // when we receive an attribution, and we have a session
@@ -141,7 +176,7 @@ async fn attribution_login(
     pool: PgPool,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("LOGIN: {:?}", attr);
-    if let Some(ws_channel) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
+    if let Some((_, ws_channel)) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
         // now we have the channel so we can generate a new authenticated token
         // and send the update over the channel.
         // make sure the token has the same suuid, as this is tied to the websocket.

@@ -9,7 +9,7 @@ use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 
-use streaker_common::ws::{MemberState, WsRequest, WsResponse};
+use streaker_common::ws::{MemberState, ScanSessionState, WsRequest, WsResponse};
 
 mod components;
 mod qrcode;
@@ -38,6 +38,7 @@ struct Root {
     ws: Option<WebSocketTask>,
 
     member_state: Option<MemberState>,
+    scan_session_state: Option<ScanSessionState>,
 }
 
 #[derive(Debug)]
@@ -74,6 +75,7 @@ impl Component for Root {
             ws_service: WebSocketService::new(),
             ws: None,
             member_state: None,
+            scan_session_state: None,
         }
     }
 
@@ -175,6 +177,11 @@ impl Component for Root {
                     WsResponse::MemberState(member_state) => {
                         log::info!("{:?}", member_state);
                         self.member_state = Some(member_state);
+                    }
+
+                    WsResponse::ScanSessionState(scan_session_state) => {
+                        log::info!("{:?}", scan_session_state);
+                        self.scan_session_state = Some(scan_session_state);
                     }
                     WsResponse::Error(msg) => {
                         log::error!("{:?}", msg);

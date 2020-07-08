@@ -3,6 +3,8 @@ use chrono::{DateTime, Utc};
 use sqlx::postgres::PgPool;
 use uuid::Uuid;
 
+use streaker_common::ws::ScanSessionState;
+
 #[derive(Debug, PartialEq)]
 pub struct ScanSession {
     pub uuid: Uuid,
@@ -51,6 +53,43 @@ impl ScanSession {
             let begin = &Utc::now().date().and_hms(0, 0, 0);
             Ok(Self::create(&pool, visitorid, begin).await?)
         }
+    }
+
+    // build the scansession state, used to send to the client
+    // to render the scan! page
+    pub async fn scan_session_state(&self, pool: &PgPool) -> Result<ScanSessionState> {
+        let scan_session = Self::current(pool, &self.visitorid).await?;
+
+        let total = sqlx::query!("select count(*) as count from anodes")
+            .fetch_one(pool)
+            .await?;
+
+        let scans_performed = sqlx::query!(
+            "select count(*) as count from scans where scansession = $1",
+            scan_session.uuid
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let next_anode = sqlx::query!(
+            r#"select label from anodes
+                 where 
+                   anodes.label NOT IN (select anode from scans where scansession = $1)"#,
+            scan_session.uuid
+        )
+        .fetch_optional(pool)
+        .await?;
+
+        // build up the scansession state
+        let scan_session_state = ScanSessionState {
+            uuid: scan_session.uuid,
+            count: scans_performed.count.unwrap() as u16,
+            total: total.count.unwrap() as u16,
+            next_anode: next_anode.map(|a| a.label),
+            begin: scan_session.begin,
+        };
+
+        Ok(scan_session_state)
     }
 
     pub async fn latest(pool: &PgPool, visitorid: &str) -> Result<Option<ScanSession>> {
