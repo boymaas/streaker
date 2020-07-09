@@ -1,7 +1,7 @@
 create table members (
 	visitorid varchar(128) primary key,
 	bucket int default 0,
-	streak_total int default 0,
+	streak_current int default 0,
 	streak_bucket int default 0,
 	balance float default 0,
 

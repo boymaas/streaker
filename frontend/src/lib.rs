@@ -169,6 +169,11 @@ impl Component for Root {
                         // and received an attribution request.
                         // Lets set our authenticated token!
                         token::set_token(Some(authenticated_token));
+                        // reconnect our websocket so we have a connection
+                        // with a visitor id on the backend. Needed
+                        // to tie the scans to the logged in member
+                        self.ws_connect(&token::get_token().unwrap());
+
                         // and now navigate to the authenticated
                         // part of the application
                         self.router_agent

@@ -5,7 +5,7 @@ use sqlx::postgres::PgPool;
 pub struct Member {
     pub visitorid: String,
     pub bucket: i32,
-    pub streak_total: i32,
+    pub streak_current: i32,
     pub streak_bucket: i32,
     pub balance: f64,
     pub email: Option<String>,
