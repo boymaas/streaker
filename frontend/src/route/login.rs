@@ -29,7 +29,7 @@ impl Component for Login {
 
     fn view(&self) -> Html {
         let suuid = &token::get_token_suuid().unwrap().to_string();
-        let result = qrcode::generate("opesdentist", &format!("login:{}", suuid));
+        let result = qrcode::generate("Streaker Login", "opesdentist", &format!("login:{}", suuid));
 
         html! {
 

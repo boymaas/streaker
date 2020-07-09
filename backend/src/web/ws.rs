@@ -1,3 +1,4 @@
+use chrono::Utc;
 use futures::{FutureExt, StreamExt};
 use log;
 use serde_json;
@@ -9,10 +10,12 @@ use warp::ws::Message;
 
 use sqlx::PgPool;
 
+use streaker_common::streak_logic::StreakLogic;
 use streaker_common::ws::{WsRequest, WsResponse};
 
 use crate::jwt::{self, Claims, TokenData};
 use crate::model::Member;
+use crate::model::Scan;
 use crate::model::ScanSession;
 
 pub type WsChannel = mpsc::UnboundedSender<Result<Message, warp::Error>>;
@@ -83,12 +86,28 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
         //
         // visitorid is also always defined when we are authenticated
         if let Ok(member) = Member::fetch(&pool, &visitorid).await {
-            send_response(&tx, &WsResponse::MemberState(member.into()));
+            // notice the clone here, as we are sending, and into consumes
+            // the value
+            send_response(&tx, &WsResponse::MemberState(member.clone().into()));
 
+            // find our current scansession
             if let Ok(scan_session) = ScanSession::current(&pool, &visitorid).await {
                 if let Ok(scan_session_state) = scan_session.scan_session_state(&pool).await {
                     send_response(&tx, &WsResponse::ScanSessionState(scan_session_state));
                 }
+            }
+
+            // now lets build our StreakerState
+            // for this we need our last registered scan. And some fields
+            // of our member
+            if let Ok(last_scan) = Scan::last_scan(&pool, visitorid).await {
+                let streak_logic = StreakLogic::new(
+                    member.streak_current,
+                    member.streak_bucket,
+                    last_scan.map(|ls| ls.tstamp),
+                );
+                let streak_state = streak_logic.evaluate(Utc::now());
+                send_response(&tx, &WsResponse::StreakState(streak_state));
             }
         } else {
             log::error!("member must exist on authenticated connection!")

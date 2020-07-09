@@ -1,7 +1,7 @@
 use anyhow::Result;
 use sqlx::postgres::PgPool;
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Member {
     pub visitorid: String,
     pub bucket: i32,

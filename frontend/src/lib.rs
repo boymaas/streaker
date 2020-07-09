@@ -9,7 +9,7 @@ use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew_router::{agent::RouteRequest::ChangeRoute, prelude::*};
 
-use streaker_common::ws::{MemberState, ScanSessionState, WsRequest, WsResponse};
+use streaker_common::ws::{MemberState, ScanSessionState, StreakState, WsRequest, WsResponse};
 
 mod components;
 mod qrcode;
@@ -39,6 +39,7 @@ struct Root {
 
     member_state: Option<MemberState>,
     scan_session_state: Option<ScanSessionState>,
+    streak_state: Option<StreakState>,
 }
 
 #[derive(Debug)]
@@ -76,6 +77,7 @@ impl Component for Root {
             ws: None,
             member_state: None,
             scan_session_state: None,
+            streak_state: None,
         }
     }
 
@@ -184,6 +186,11 @@ impl Component for Root {
                         self.member_state = Some(member_state);
                     }
 
+                    WsResponse::StreakState(streak_state) => {
+                        log::info!("{:?}", streak_state);
+                        self.streak_state = Some(streak_state);
+                    }
+
                     WsResponse::ScanSessionState(scan_session_state) => {
                         log::info!("{:?}", scan_session_state);
                         self.scan_session_state = Some(scan_session_state);
@@ -229,7 +236,7 @@ impl Component for Root {
                         match route {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
-                            AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state />},
+                            AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state />},
                             AppRoute::Scans => html!{<Scan member_state=&self.member_state />},
                             _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
 

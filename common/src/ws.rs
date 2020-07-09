@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub use crate::streak_logic::StreakState;
+
 type VisitorId = String;
 type Token = String;
 
@@ -14,7 +16,7 @@ pub enum WsRequest {}
 pub struct MemberState {
     pub visitorid: String,
     pub bucket: i32,
-    pub streak_total: i32,
+    pub streak_current: i32,
     pub streak_bucket: i32,
     pub balance: f64,
     pub email: Option<String>,
@@ -42,6 +44,7 @@ pub enum WsResponse {
     BadToken(Token),
     MemberState(MemberState),
     ScanSessionState(ScanSessionState),
+    StreakState(StreakState),
     DoubleConnection,
     Error(String),
 }

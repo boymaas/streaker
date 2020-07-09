@@ -90,7 +90,7 @@ impl std::convert::Into<MemberState> for member::Member {
         MemberState {
             visitorid: self.visitorid,
             bucket: self.bucket,
-            streak_total: self.streak_total,
+            streak_current: self.streak_current,
             streak_bucket: self.streak_bucket,
             balance: self.balance,
             email: self.email,

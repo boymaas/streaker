@@ -5,17 +5,13 @@ use uuid::Uuid;
 
 use streaker_common::ws::ScanSessionState;
 
+use crate::model::scan::Scan;
+
 #[derive(Debug, PartialEq)]
 pub struct ScanSession {
     pub uuid: Uuid,
     pub visitorid: String,
     pub begin: DateTime<Utc>,
-}
-
-pub struct Scan {
-    pub scansession: Uuid,
-    pub anode: String,
-    pub tstamp: DateTime<Utc>,
 }
 
 impl ScanSession {

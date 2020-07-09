@@ -1,27 +1,28 @@
 use chrono::prelude::*;
+use serde::{Deserialize, Serialize};
 use time::Duration;
 
 use crate::rewards_program::RewardsProgram;
 
 #[derive(Debug)]
-struct StreakLogic {
-    streak_current: u32,
-    streak_bucket: u32,
+pub struct StreakLogic {
+    streak_current: i32,
+    streak_bucket: i32,
     last_scan: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, PartialEq)]
-struct StreakState {
-    streak_missed: u32,
-    streak_current: u32,
-    streak_bucket: u32,
-    bucket: u32,
-    mining_ratio: f64,
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
+pub struct StreakState {
+    pub streak_missed: i32,
+    pub streak_current: i32,
+    pub streak_bucket: i32,
+    pub bucket: i32,
+    pub mining_ratio: f64,
 }
 
 impl StreakLogic {
     // will implement a from member function
-    fn new(streak_current: u32, streak_bucket: u32, last_scan: Option<DateTime<Utc>>) -> Self {
+    pub fn new(streak_current: i32, streak_bucket: i32, last_scan: Option<DateTime<Utc>>) -> Self {
         Self {
             streak_bucket,
             streak_current,
@@ -29,7 +30,7 @@ impl StreakLogic {
         }
     }
 
-    fn evaluate(&self, at: DateTime<Utc>) -> StreakState {
+    pub fn evaluate(&self, at: DateTime<Utc>) -> StreakState {
         // if we do not have a last scan, it is simple
         // no scan was performed and thus streakstate is default
         if self.last_scan.is_none() {
@@ -46,7 +47,7 @@ impl StreakLogic {
         let last_scan = self.last_scan.unwrap().date().and_hms(0, 0, 0);
         let window = at.signed_duration_since(last_scan);
 
-        let days_since_last_scan = window.num_days() as u32;
+        let days_since_last_scan = window.num_days() as i32;
 
         println!("{:?}", days_since_last_scan);
 
@@ -66,7 +67,7 @@ impl StreakLogic {
 
                 // find our current bucket and compensate for days missed
                 let mut bucket = RewardsProgram::find_bucket(self.streak_bucket);
-                bucket = (bucket - streak_missed.min(bucket)).max(0);
+                bucket = (bucket - streak_missed).max(0);
 
                 // now realign our streak_bucket to the beginning of the bucket
                 let streak_bucket = RewardsProgram::find_streak_bucket(bucket);

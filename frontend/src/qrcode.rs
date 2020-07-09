@@ -3,7 +3,7 @@ use url::Url;
 
 type SvgCode = String;
 
-pub fn generate(anode: &str, source: &str) -> SvgCode {
+pub fn generate(name: &str, anode: &str, source: &str) -> SvgCode {
     let anode_url = Url::parse(&format!("https://{}.monetashi.io", anode)).unwrap();
 
     let url = Url::parse_with_params(

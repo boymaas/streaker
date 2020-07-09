@@ -40,7 +40,7 @@ impl Component for Scan {
 
     fn view(&self) -> Html {
         let suuid = &token::get_token_suuid().unwrap().to_string();
-        let qrcode = qrcode::generate("opesdentist", &format!("scan:{}", suuid));
+        let qrcode = qrcode::generate("Streaker Scan", "opesdentist", &format!("scan:{}", suuid));
 
         html! {
         <div id="scan">
