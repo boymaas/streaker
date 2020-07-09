@@ -186,4 +186,19 @@ fn test_evaluate() {
             mining_ratio: 0.0025,
         }
     );
+
+    // other edge case, we are streaking out!
+    let logic = StreakLogic::new(200, 200, Some(last_scan));
+    let state = logic.evaluate(add_hours(8));
+
+    assert_eq!(
+        state,
+        StreakState {
+            streak_current: 200,
+            streak_bucket: 200,
+            streak_missed: 0,
+            bucket: 10,
+            mining_ratio: 0.0075,
+        }
+    );
 }
