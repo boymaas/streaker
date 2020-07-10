@@ -2,8 +2,8 @@ use sqlx::postgres::PgPool;
 use warp::Filter;
 
 pub mod anode;
-mod token;
-mod ws;
+pub mod token;
+pub mod ws;
 
 use uuid::Uuid;
 
