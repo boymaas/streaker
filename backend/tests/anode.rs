@@ -1,5 +1,6 @@
 use dotenv;
 use pretty_env_logger;
+use sqlx::PgPool;
 use uuid::Uuid;
 use warp::{http::Method, Filter};
 
