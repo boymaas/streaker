@@ -226,14 +226,19 @@ async fn attribution_scan(
     //
     // The introcution of the inner is just to make the map_err happen
     // on one spot.
-    let mut transaction = pool.begin().await.expect("Could not start transaction");
+    let mut transaction = pool
+        .begin()
+        .await
+        .map_err(reject("Could not start transaction"))?;
+
     let result = attribution_scan_inner(attr, ws_sessions, &mut transaction)
         .await
         .map_err(reject("problem executing attribution"))?;
+
     transaction
         .commit()
         .await
-        .expect("Could not commit transaction");
+        .map_err(reject("Could not commit transaction"))?;
 
     Ok(result)
 }
@@ -247,7 +252,10 @@ async fn attribution_login(
     pool: PgPool,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("LOGIN: {:?}", attr);
-    let mut conn = pool.acquire().await.expect("problem acquiring connection");
+    let mut conn = pool
+        .acquire()
+        .await
+        .map_err(reject("problem acquiring connection"))?;
     if let Some((_, ws_channel)) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
         // now we have the channel so we can generate a new authenticated token
         // and send the update over the channel.
