@@ -1,21 +1,23 @@
 // Now link the source of the attribution
 // to the websocket channel, and generate
 // a new token and send it over the websocket
-use crate::jwt;
-use crate::web::ws::{send_response, Sessions};
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
 use warp;
 use warp::reply::Json;
 
-use crate::model::member;
-use crate::model::scan_session::ScanSession;
-
+use streaker_common::streak_logic::StreakLogic;
 use streaker_common::ws::{MemberState, WsResponse};
+
+use crate::jwt;
+use crate::model::member::Member;
+use crate::model::scan::Scan;
+use crate::model::scan_session::ScanSession;
+use crate::web::ws::{send_response, Sessions};
 
 mod custom_date_parser {
     use chrono::{DateTime, TimeZone, Utc};
@@ -85,11 +87,10 @@ pub enum SourceAction {
     Scan,
 }
 
-impl std::convert::Into<MemberState> for member::Member {
+impl std::convert::Into<MemberState> for Member {
     fn into(self) -> MemberState {
         MemberState {
             visitorid: self.visitorid,
-            bucket: self.bucket,
             streak_current: self.streak_current,
             streak_bucket: self.streak_bucket,
             balance: self.balance,
@@ -130,23 +131,85 @@ async fn attribution_scan_inner(
     if let Some((Some(visitorid), ws_channel)) =
         ws_sessions.read().await.get(&attr.claim.source.suuid)
     {
-        // link them together &attr.claim.visitorid
+        let mut member = Member::fetch(&pool, &visitorid).await?;
+
+        // now lets build our StreakerState
+        // for this we need our last registered scan. And some fields
+        // of our member
+        let last_scan = Scan::last_scan(&pool, visitorid).await?;
+        let streak_logic = StreakLogic::new(
+            member.streak_current,
+            member.streak_bucket,
+            last_scan.map(|ls| ls.tstamp),
+        );
+
+        let streak_state = streak_logic.evaluate(Utc::now());
+
+        // if we missed a streak last time, update
+        // our member to reflect the penalty. Essentially
+        // by updating the streak_{bucket,current}
+        //
+        // streak_bucket contains information at which
+        // bucket the member is, and current is for motivational
+        // purposes.
+
+        // we missed a streak, as such apply penalty
+        if streak_state.streak_missed > 0 {
+            member
+                .update_streak_info(
+                    &pool,
+                    streak_state.streak_current,
+                    streak_state.streak_bucket,
+                )
+                .await?;
+        } else if streak_state.days_since_last_scan == 1 {
+            // we are scanning in the 24-48 hours after the scan
+            // window of our last scan, as such we earned a streak!
+            member
+                .update_streak_info(
+                    &pool,
+                    streak_state.streak_current + 1,
+                    streak_state.streak_bucket + 1,
+                )
+                .await?;
+        }
+        // now we have update our member state. If we haven't updated
+        // it we just send the state as is.
+        send_response(ws_channel, &WsResponse::MemberState(member.into()));
+
+        // TODO: link them together &attr.claim.visitorid
+        // Find our current scan sesssion, this could be a new one
         let scan_session = ScanSession::current(&pool, visitorid).await?;
 
+        // and register our scan, effectively setting last scan to now
         scan_session
             .register_scan(&pool, &attr.access_node_name)
             .await?;
 
+        // now generating a new scan session state based on the newly registered
+        // scan. As now we need a new next-anode to scan.
         let scan_session_state = scan_session.scan_session_state(&pool).await?;
-
         send_response(
-            ws_channel,
+            &ws_channel,
             &WsResponse::ScanSessionState(scan_session_state),
         );
+
+        // now send the new streak state over the websocket
+        send_response(&ws_channel, &WsResponse::StreakState(streak_state));
+
         Ok(warp::reply::json(&json!({"success": true})))
     } else {
         Err(anyhow::anyhow!("Session with visitorID not present!"))
     }
+}
+
+#[derive(Debug)]
+struct AttributionError(String);
+impl warp::reject::Reject for AttributionError {}
+
+fn reject<T>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
+    let msg = msg.to_owned();
+    Box::new(move |_: T| warp::reject::custom(AttributionError(msg)))
 }
 
 async fn attribution_scan(
@@ -162,9 +225,13 @@ async fn attribution_scan(
     //
     // The introcution of the inner is just to make the map_err happen
     // on one spot.
-    attribution_scan_inner(attr, ws_sessions, pool)
+    // let transaction = pool.begin().await.map_err(reject("Could not start tx"))?;
+    let result = attribution_scan_inner(attr, ws_sessions, pool)
         .await
-        .map_err(|_| warp::reject::not_found())
+        .map_err(reject("problem executing attribution"))?;
+    // transaction.commit();
+
+    Ok(result)
 }
 
 // when we receive an attribution, and we have a session
@@ -186,12 +253,12 @@ async fn attribution_login(
 
         // now also send out member state
         // fetch member from database, and build the member state
-        if let Ok(member) = member::Member::fetch(&pool, &attr.claim.visitorid).await {
+        if let Ok(member) = Member::fetch(&pool, &attr.claim.visitorid).await {
             // we have a member in the database, so lets send it over
             send_response(ws_channel, &WsResponse::MemberState(member.into()));
         } else {
             // we do not have a member in the database lets create one
-            if let Ok(member) = member::Member::add(&pool, &attr.claim.visitorid).await {
+            if let Ok(member) = Member::add(&pool, &attr.claim.visitorid).await {
                 send_response(ws_channel, &WsResponse::MemberState(member.into()));
             } else {
                 // we could not create this member, we need to communicate this back

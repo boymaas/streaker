@@ -4,7 +4,6 @@ use sqlx::postgres::PgPool;
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Member {
     pub visitorid: String,
-    pub bucket: i32,
     pub streak_current: i32,
     pub streak_bucket: i32,
     pub balance: f64,
@@ -39,6 +38,32 @@ impl Member {
         .fetch_one(pool)
         .await?;
         Ok(member)
+    }
+
+    pub async fn update_streak_info(
+        &self,
+        pool: &PgPool,
+        streak_current: i32,
+        streak_bucket: i32,
+    ) -> Result<bool> {
+        let rows_affected = sqlx::query!(
+            r#"
+                UPDATE members SET streak_current = $1, streak_bucket = $2
+                WHERE visitorid = $3
+            "#,
+            streak_current,
+            streak_bucket,
+            self.visitorid
+        )
+        .execute(pool)
+        .await?;
+        if rows_affected == 1 {
+            Ok(true)
+        } else {
+            Err(anyhow::anyhow!(
+                "Invalid rows_affected when updating streak info"
+            ))
+        }
     }
 }
 

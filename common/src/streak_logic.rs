@@ -17,6 +17,7 @@ pub struct StreakState {
     pub streak_current: i32,
     pub streak_bucket: i32,
     pub bucket: i32,
+    pub days_since_last_scan: i32,
     pub mining_ratio: f64,
 }
 
@@ -35,11 +36,8 @@ impl StreakLogic {
         // no scan was performed and thus streakstate is default
         if self.last_scan.is_none() {
             return StreakState {
-                streak_current: 0,
-                streak_bucket: 0,
-                streak_missed: 0,
-                bucket: 0,
                 mining_ratio: RewardsProgram::find_mining_ratio(0),
+                ..Default::default()
             };
         }
 
@@ -59,6 +57,7 @@ impl StreakLogic {
                     streak_bucket: self.streak_bucket,
                     streak_missed: 0,
                     bucket: bucket,
+                    days_since_last_scan,
                     mining_ratio: RewardsProgram::find_mining_ratio(bucket),
                 }
             }
@@ -77,6 +76,7 @@ impl StreakLogic {
                     streak_missed: streak_missed,
                     streak_bucket,
                     bucket,
+                    days_since_last_scan,
                     mining_ratio: RewardsProgram::find_mining_ratio(bucket),
                 }
             }

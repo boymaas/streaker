@@ -15,7 +15,6 @@ pub enum WsRequest {}
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MemberState {
     pub visitorid: String,
-    pub bucket: i32,
     pub streak_current: i32,
     pub streak_bucket: i32,
     pub balance: f64,
