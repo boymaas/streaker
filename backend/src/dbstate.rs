@@ -14,8 +14,9 @@ fn get_db_error_code<'a>(e: &'a anyhow::Error) -> Option<&'a str> {
 }
 
 pub async fn ensure(pool: &PgPool) {
+    let mut conn = pool.acquire().await.expect("problem acquiring connection");
     for anode in ANODES.iter() {
-        if let Err(e) = AccessNode::create(pool, anode).await {
+        if let Err(e) = AccessNode::create(&mut conn, anode).await {
             if let Some("23505") = get_db_error_code(&e) {
             } else {
                 panic!("{:?}", &e);

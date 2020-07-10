@@ -74,6 +74,8 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
     // send over the state.
     send_response(&tx, &WsResponse::Connected);
 
+    let mut conn = pool.acquire().await.expect("Problem acquiring connection");
+
     // send over state when authenticated
     if let Claims {
         authenticated: true,
@@ -85,14 +87,14 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
         // process. If it does not exist, we have a structural problem
         //
         // visitorid is also always defined when we are authenticated
-        if let Ok(member) = Member::fetch(&pool, &visitorid).await {
+        if let Ok(member) = Member::fetch(&mut conn, &visitorid).await {
             // notice the clone here, as we are sending, and into consumes
             // the value
             send_response(&tx, &WsResponse::MemberState(member.clone().into()));
 
             // find our current scansession
-            if let Ok(scan_session) = ScanSession::current(&pool, &visitorid).await {
-                if let Ok(scan_session_state) = scan_session.scan_session_state(&pool).await {
+            if let Ok(scan_session) = ScanSession::current(&mut conn, &visitorid).await {
+                if let Ok(scan_session_state) = scan_session.scan_session_state(&mut conn).await {
                     send_response(&tx, &WsResponse::ScanSessionState(scan_session_state));
                 }
             }
@@ -100,7 +102,7 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
             // now lets build our StreakerState
             // for this we need our last registered scan. And some fields
             // of our member
-            if let Ok(last_scan) = Scan::last_scan(&pool, visitorid).await {
+            if let Ok(last_scan) = Scan::last_scan(&mut conn, visitorid).await {
                 let streak_logic = StreakLogic::new(
                     member.streak_current,
                     member.streak_bucket,

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
-use sqlx::postgres::PgPool;
+use sqlx::postgres::PgConnection;
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq)]
@@ -11,7 +11,7 @@ pub struct Scan {
 }
 
 impl Scan {
-    pub async fn last_scan(pool: &PgPool, visitorid: &str) -> Result<Option<Scan>> {
+    pub async fn last_scan(pool: &mut PgConnection, visitorid: &str) -> Result<Option<Scan>> {
         let scan: Option<Scan> = sqlx::query_as!(
             Scan,
             r#"SELECT scans.* FROM scansessions 

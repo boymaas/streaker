@@ -124,19 +124,19 @@ pub async fn attribution(
 async fn attribution_scan_inner(
     attr: Attribution,
     ws_sessions: Sessions,
-    pool: PgPool,
+    conn: &mut PgConnection,
 ) -> Result<Json> {
     // lets get the visitorid from this ws_connection, this visitorid
     // has been set on a websocket connection with an authenticated token.
     if let Some((Some(visitorid), ws_channel)) =
         ws_sessions.read().await.get(&attr.claim.source.suuid)
     {
-        let mut member = Member::fetch(&pool, &visitorid).await?;
+        let mut member = Member::fetch(conn, &visitorid).await?;
 
         // now lets build our StreakerState
         // for this we need our last registered scan. And some fields
         // of our member
-        let last_scan = Scan::last_scan(&pool, visitorid).await?;
+        let last_scan = Scan::last_scan(conn, visitorid).await?;
         let streak_logic = StreakLogic::new(
             member.streak_current,
             member.streak_bucket,
@@ -157,7 +157,7 @@ async fn attribution_scan_inner(
         if streak_state.streak_missed > 0 {
             member
                 .update_streak_info(
-                    &pool,
+                    conn,
                     streak_state.streak_current,
                     streak_state.streak_bucket,
                 )
@@ -167,7 +167,7 @@ async fn attribution_scan_inner(
             // window of our last scan, as such we earned a streak!
             member
                 .update_streak_info(
-                    &pool,
+                    conn,
                     streak_state.streak_current + 1,
                     streak_state.streak_bucket + 1,
                 )
@@ -179,16 +179,16 @@ async fn attribution_scan_inner(
 
         // TODO: link them together &attr.claim.visitorid
         // Find our current scan sesssion, this could be a new one
-        let scan_session = ScanSession::current(&pool, visitorid).await?;
+        let scan_session = ScanSession::current(conn, visitorid).await?;
 
         // and register our scan, effectively setting last scan to now
         scan_session
-            .register_scan(&pool, &attr.access_node_name)
+            .register_scan(conn, &attr.access_node_name)
             .await?;
 
         // now generating a new scan session state based on the newly registered
         // scan. As now we need a new next-anode to scan.
-        let scan_session_state = scan_session.scan_session_state(&pool).await?;
+        let scan_session_state = scan_session.scan_session_state(conn).await?;
         send_response(
             &ws_channel,
             &WsResponse::ScanSessionState(scan_session_state),
@@ -207,6 +207,7 @@ async fn attribution_scan_inner(
 struct AttributionError(String);
 impl warp::reject::Reject for AttributionError {}
 
+// helper to reject with a message in a map_err context
 fn reject<T>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
     let msg = msg.to_owned();
     Box::new(move |_: T| warp::reject::custom(AttributionError(msg)))
@@ -225,11 +226,14 @@ async fn attribution_scan(
     //
     // The introcution of the inner is just to make the map_err happen
     // on one spot.
-    // let transaction = pool.begin().await.map_err(reject("Could not start tx"))?;
-    let result = attribution_scan_inner(attr, ws_sessions, pool)
+    let mut transaction = pool.begin().await.expect("Could not start transaction");
+    let result = attribution_scan_inner(attr, ws_sessions, &mut transaction)
         .await
         .map_err(reject("problem executing attribution"))?;
-    // transaction.commit();
+    transaction
+        .commit()
+        .await
+        .expect("Could not commit transaction");
 
     Ok(result)
 }
@@ -243,6 +247,7 @@ async fn attribution_login(
     pool: PgPool,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("LOGIN: {:?}", attr);
+    let mut conn = pool.acquire().await.expect("problem acquiring connection");
     if let Some((_, ws_channel)) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
         // now we have the channel so we can generate a new authenticated token
         // and send the update over the channel.
@@ -253,12 +258,12 @@ async fn attribution_login(
 
         // now also send out member state
         // fetch member from database, and build the member state
-        if let Ok(member) = Member::fetch(&pool, &attr.claim.visitorid).await {
+        if let Ok(member) = Member::fetch(&mut conn, &attr.claim.visitorid).await {
             // we have a member in the database, so lets send it over
             send_response(ws_channel, &WsResponse::MemberState(member.into()));
         } else {
             // we do not have a member in the database lets create one
-            if let Ok(member) = Member::add(&pool, &attr.claim.visitorid).await {
+            if let Ok(member) = Member::add(&mut conn, &attr.claim.visitorid).await {
                 send_response(ws_channel, &WsResponse::MemberState(member.into()));
             } else {
                 // we could not create this member, we need to communicate this back
