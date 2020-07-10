@@ -19,6 +19,12 @@ use crate::model::scan::Scan;
 use crate::model::scan_session::ScanSession;
 use crate::web::ws::{send_response, Sessions};
 
+mod login;
+mod scan;
+
+use crate::web::anode::login::attribution_login;
+use crate::web::anode::scan::attribution_scan;
+
 mod custom_date_parser {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer};
@@ -119,172 +125,12 @@ pub async fn attribution(
     }
 }
 
-// Handle the scan attribution, looking up the scansession for the
-// logged in member.
-async fn attribution_scan_inner(
-    attr: Attribution,
-    ws_sessions: Sessions,
-    conn: &mut PgConnection,
-) -> Result<Json> {
-    // lets get the visitorid from this ws_connection, this visitorid
-    // has been set on a websocket connection with an authenticated token.
-    if let Some((Some(visitorid), ws_channel)) =
-        ws_sessions.read().await.get(&attr.claim.source.suuid)
-    {
-        let mut member = Member::fetch(conn, &visitorid).await?;
-
-        // now lets build our StreakerState
-        // for this we need our last registered scan. And some fields
-        // of our member
-        let last_scan = Scan::last_scan(conn, visitorid).await?;
-        let streak_logic = StreakLogic::new(
-            member.streak_current,
-            member.streak_bucket,
-            last_scan.map(|ls| ls.tstamp),
-        );
-
-        let streak_state = streak_logic.evaluate(Utc::now());
-
-        // if we missed a streak last time, update
-        // our member to reflect the penalty. Essentially
-        // by updating the streak_{bucket,current}
-        //
-        // streak_bucket contains information at which
-        // bucket the member is, and current is for motivational
-        // purposes.
-
-        // we missed a streak, as such apply penalty
-        if streak_state.streak_missed > 0 {
-            member
-                .update_streak_info(
-                    conn,
-                    streak_state.streak_current,
-                    streak_state.streak_bucket,
-                )
-                .await?;
-        } else if streak_state.days_since_last_scan == 1 {
-            // we are scanning in the 24-48 hours after the scan
-            // window of our last scan, as such we earned a streak!
-            member
-                .update_streak_info(
-                    conn,
-                    streak_state.streak_current + 1,
-                    streak_state.streak_bucket + 1,
-                )
-                .await?;
-        }
-        // now we have update our member state. If we haven't updated
-        // it we just send the state as is.
-        send_response(ws_channel, &WsResponse::MemberState(member.into()));
-
-        // TODO: link them together &attr.claim.visitorid
-        // Find our current scan sesssion, this could be a new one
-        let scan_session = ScanSession::current(conn, visitorid).await?;
-
-        // and register our scan, effectively setting last scan to now
-        scan_session
-            .register_scan(conn, &attr.access_node_name)
-            .await?;
-
-        // now generating a new scan session state based on the newly registered
-        // scan. As now we need a new next-anode to scan.
-        let scan_session_state = scan_session.scan_session_state(conn).await?;
-        send_response(
-            &ws_channel,
-            &WsResponse::ScanSessionState(scan_session_state),
-        );
-
-        // now send the new streak state over the websocket
-        send_response(&ws_channel, &WsResponse::StreakState(streak_state));
-
-        Ok(warp::reply::json(&json!({"success": true})))
-    } else {
-        Err(anyhow::anyhow!("Session with visitorID not present!"))
-    }
-}
-
 #[derive(Debug)]
 struct AttributionError(String);
 impl warp::reject::Reject for AttributionError {}
 
 // helper to reject with a message in a map_err context
-fn reject<T>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
+pub fn reject<T>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
     let msg = msg.to_owned();
     Box::new(move |_: T| warp::reject::custom(AttributionError(msg)))
-}
-
-async fn attribution_scan(
-    attr: Attribution,
-    ws_sessions: Sessions,
-    pool: PgPool,
-) -> Result<Json, warp::reject::Rejection> {
-    log::info!("SCAN: {:?}", attr);
-
-    // TODO: the pattern here is warp filters need to return
-    // a warp reply or reject, but errors do not map to the reject.
-    // We need to find a pattern for this.
-    //
-    // The introcution of the inner is just to make the map_err happen
-    // on one spot.
-    let mut transaction = pool
-        .begin()
-        .await
-        .map_err(reject("Could not start transaction"))?;
-
-    let result = attribution_scan_inner(attr, ws_sessions, &mut transaction)
-        .await
-        .map_err(reject("problem executing attribution"))?;
-
-    transaction
-        .commit()
-        .await
-        .map_err(reject("Could not commit transaction"))?;
-
-    Ok(result)
-}
-
-// when we receive an attribution, and we have a session
-// which matches the suuid of the attribution. We can authenticate
-// that session with the correct visitor id
-async fn attribution_login(
-    attr: Attribution,
-    ws_sessions: Sessions,
-    pool: PgPool,
-) -> Result<Json, warp::reject::Rejection> {
-    log::info!("LOGIN: {:?}", attr);
-    let mut conn = pool
-        .acquire()
-        .await
-        .map_err(reject("problem acquiring connection"))?;
-    if let Some((_, ws_channel)) = ws_sessions.read().await.get(&attr.claim.source.suuid) {
-        // now we have the channel so we can generate a new authenticated token
-        // and send the update over the channel.
-        // make sure the token has the same suuid, as this is tied to the websocket.
-        let auth_token =
-            jwt::generate_authenticated_token(&attr.claim.source.suuid, &attr.claim.visitorid);
-        send_response(ws_channel, &WsResponse::Attribution(auth_token));
-
-        // now also send out member state
-        // fetch member from database, and build the member state
-        if let Ok(member) = Member::fetch(&mut conn, &attr.claim.visitorid).await {
-            // we have a member in the database, so lets send it over
-            send_response(ws_channel, &WsResponse::MemberState(member.into()));
-        } else {
-            // we do not have a member in the database lets create one
-            if let Ok(member) = Member::add(&mut conn, &attr.claim.visitorid).await {
-                send_response(ws_channel, &WsResponse::MemberState(member.into()));
-            } else {
-                // we could not create this member, we need to communicate this back
-                // to the UI
-                send_response(
-                    ws_channel,
-                    &WsResponse::Error("Could not create MemberState".into()),
-                );
-            };
-        };
-
-        Ok(warp::reply::json(&json!({"success": true})))
-    } else {
-        Err(warp::reject::not_found())
-    }
 }

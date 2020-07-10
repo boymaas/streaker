@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPool;
 use warp::Filter;
 
-mod anode;
+pub mod anode;
 mod token;
 mod ws;
 

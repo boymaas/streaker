@@ -74,6 +74,8 @@ pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: war
     // send over the state.
     send_response(&tx, &WsResponse::Connected);
 
+    // acquire a connect, this now gives a hard error
+    // TODO: is there another way to handle this
     let mut conn = pool.acquire().await.expect("Problem acquiring connection");
 
     // send over state when authenticated
