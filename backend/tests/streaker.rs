@@ -1,5 +1,6 @@
 use std::sync::Once;
 
+use anyhow::Result;
 use dotenv;
 use pretty_env_logger;
 
@@ -26,7 +27,7 @@ async fn prepare_test_app() -> StreakerApp {
 }
 
 #[tokio::test]
-async fn test_streaker_client() {
+async fn test_streaker_client() -> Result<()> {
     let app = prepare_test_app().await;
 
     let mut client = StreakerClient::new(app);
@@ -37,6 +38,10 @@ async fn test_streaker_client() {
     // Now connect to the websocket
     // using our unauthenticated token
     client.ws_connect().await;
+
+    // We can use the ? operator to check for
+    // errors, beats the unwraps
+    // Err(anyhow::anyhow!("Test exit"))?;
 
     // Now simulate our accessnode registering the login
     // scan.
@@ -70,8 +75,9 @@ async fn test_streaker_client() {
     }
 
     // So lets count the number of access nodes
-    let mut conn = client.streaker_app.pool.acquire().await.unwrap();
-    let access_node_count = AccessNode::count(&mut conn).await.unwrap();
+    // TODO: make accessor to get db_connection from the pool
+    let mut conn = client.streaker_app.pool.acquire().await?;
+    let access_node_count = AccessNode::count(&mut conn).await?;
 
     // the scan session should have covered all the registered
     // access nodes!
@@ -81,4 +87,5 @@ async fn test_streaker_client() {
     );
 
     // This is a minimal roundtrip test
+    Ok(())
 }
