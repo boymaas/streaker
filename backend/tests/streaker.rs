@@ -47,7 +47,7 @@ async fn test_streaker_client() {
         .post_attribution_login("opesdentist", "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
         .await;
 
-    // now simulate a scan coming through to our application
+    // now simulate scans coming through our application
     // this will, register a scan, and we will receive the new
     // states from our websocket connection.
     //
