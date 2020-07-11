@@ -4,6 +4,8 @@ use sqlx::postgres::PgPool;
 use sqlx::{Connect, Executor, PgConnection};
 use url::Url;
 
+use crate::dbstate;
+
 fn testbase_url() -> String {
     dotenv::var("TESTBASE_URL").unwrap()
 }
@@ -68,5 +70,7 @@ pub async fn migrate_database() {
 pub async fn prepare_database() -> PgPool {
     clean_database().await;
     migrate_database().await;
-    test_db_pool().await
+    let pool = test_db_pool().await;
+    dbstate::ensure(&pool).await;
+    pool
 }

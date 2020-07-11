@@ -121,35 +121,3 @@ impl ScanSession {
         Ok(session)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::ScanSession;
-    use crate::model::AccessNode;
-    use crate::model::Member;
-    use crate::testdb::prepare_database;
-
-    #[tokio::test]
-    async fn test_current() {
-        // drops and migrates the test database
-        let pool = prepare_database().await;
-
-        let mut conn = pool.acquire().await.unwrap();
-
-        let visitorid = "VISITORID";
-        let _member = Member::add(&mut conn, visitorid).await;
-
-        // Now create our member
-        let session = ScanSession::current(&mut conn, visitorid).await.unwrap();
-        assert_eq!(session.visitorid, visitorid);
-
-        // Now register a scan
-        let anode = AccessNode::create(&mut conn, "opesdentist").await.unwrap();
-        let scan = session
-            .register_scan(&mut conn, "opesdentist")
-            .await
-            .unwrap();
-
-        assert_eq!(scan.scansession, session.uuid);
-    }
-}

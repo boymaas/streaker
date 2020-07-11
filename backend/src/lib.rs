@@ -8,3 +8,5 @@ pub mod web;
 pub mod migrate;
 //#[cfg(test)]
 pub mod testdb;
+//#[cfg(test)]
+pub mod streaker_client;

@@ -19,6 +19,7 @@ pub async fn ensure(pool: &PgPool) {
     for anode in ANODES.iter() {
         if let Err(e) = AccessNode::create(&mut conn, anode).await {
             if let Some("23505") = get_db_error_code(&e) {
+                // don't continue
             } else {
                 panic!("{:?}", &e);
             }
