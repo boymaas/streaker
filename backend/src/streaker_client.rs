@@ -30,13 +30,13 @@ struct GetTokenResponse {
 }
 
 pub struct StreakerClient {
-    streaker_app: StreakerApp,
-    token_raw: Option<String>,
-    token: Option<DecodedToken>,
-    ws_client: Option<WsClient>,
-    member_state: Option<MemberState>,
-    scan_session_state: Option<ScanSessionState>,
-    streak_state: Option<StreakState>,
+    pub streaker_app: StreakerApp,
+    pub token_raw: Option<String>,
+    pub token: Option<DecodedToken>,
+    pub ws_client: Option<WsClient>,
+    pub member_state: Option<MemberState>,
+    pub scan_session_state: Option<ScanSessionState>,
+    pub streak_state: Option<StreakState>,
 }
 
 impl StreakerClient {

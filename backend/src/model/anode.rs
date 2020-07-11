@@ -18,4 +18,11 @@ impl AccessNode {
         .await?;
         Ok(anode)
     }
+
+    pub async fn count(pool: &mut PgConnection) -> Result<i64> {
+        let result = sqlx::query!("SELECT count(*) as count FROM anodes")
+            .fetch_one(pool)
+            .await?;
+        Ok(result.count.map_or(0, |v| v))
+    }
 }

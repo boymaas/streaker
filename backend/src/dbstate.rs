@@ -6,7 +6,39 @@ use crate::model::AccessNode;
 use log;
 
 lazy_static! {
-    static ref ANODES: Vec<&'static str> = vec!["opesdentist"];
+    static ref ANODES: Vec<&'static str> = vec![
+        "opesauto",
+        "opesbaby",
+        "opesbrides",
+        "opescharity",
+        "opeschurches",
+        "opescooking",
+        "opesdating",
+        "opesdentist",
+        "opesdining",
+        "opeseducation",
+        "opesfitness",
+        "opesflights",
+        "opesgames",
+        "opesgaming",
+        "opeshomes",
+        "opeshotels",
+        "opesjobs",
+        "opeskids",
+        "opesmoms",
+        "opesmovies",
+        "opesmusic",
+        "opesoutdoors",
+        "opespayments",
+        "opespets",
+        "opesrewards",
+        "opesrides",
+        "opessports",
+        "opesstudent",
+        "opessweeps",
+        "opesunite",
+        "opesvending",
+    ];
 }
 
 fn get_db_error_code<'a>(e: &'a anyhow::Error) -> Option<&'a str> {

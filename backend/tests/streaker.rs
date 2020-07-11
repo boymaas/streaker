@@ -1,30 +1,16 @@
-use std::borrow::Cow;
 use std::sync::Once;
 
-use bytes::Bytes;
 use dotenv;
 use pretty_env_logger;
-use serde::Deserialize;
-use serde_json::Value;
-use sqlx::PgPool;
-use uuid::Uuid;
-use warp::filters::BoxedFilter;
-use warp::test::WsClient;
-use warp::{http::Method, Filter, Rejection, Reply};
-
-use tokio::sync::{mpsc, RwLock};
 
 use streaker_common::ws::{MemberState, ScanSessionState, StreakState, WsResponse};
 
 // since this is not a lib we need to mod
 // modules as in the main
-use streaker::jwt::{decode_token, Claims, DecodedToken};
-use streaker::testdb::prepare_database;
-use streaker::web::anode;
-use streaker::web::ws;
-use streaker::web::StreakerApp;
-
+use streaker::model::AccessNode;
 use streaker::streaker_client::StreakerClient;
+use streaker::testdb::prepare_database;
+use streaker::web::StreakerApp;
 
 static INIT: Once = Once::new();
 async fn prepare_test_app() -> StreakerApp {
@@ -45,14 +31,52 @@ async fn test_streaker_client() {
 
     let mut client = StreakerClient::new(app);
 
+    // Connect, this will get our first
+    // unauthenticated token
     client.connect().await;
+    // Now connect to the websocket
+    // using our unauthenticated token
     client.ws_connect().await;
 
+    // Now simulate our accessnode registering the login
+    // scan.
+    // This will send an attribution to the client containing
+    // and authenticated token. With the current state of the
+    // authenticated visitor id.
     client
         .post_attribution_login("opesdentist", "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
         .await;
 
-    client
-        .post_attribution_scan("opesdentist", "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
-        .await;
+    // now simulate a scan coming through to our application
+    // this will, register a scan, and we will receive the new
+    // states from our websocket connection.
+    //
+    // we are just checking the scan_session_state if there
+    // are access nodes to be scanned, as long it is not
+    // None we keep on going. We expect the scans to match
+    // the amount of access nodes.
+    while let Some(ScanSessionState {
+        next_anode: Some(anode),
+        ..
+    }) = client.scan_session_state.clone()
+    // NOTE the colone is necessary as I cannot borrow immutable and mutable
+    // at the same time
+    {
+        client
+            .post_attribution_scan(&anode, "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
+            .await;
+    }
+
+    // So lets count the number of access nodes
+    let mut conn = client.streaker_app.pool.acquire().await.unwrap();
+    let access_node_count = AccessNode::count(&mut conn).await.unwrap();
+
+    // the scan session should have covered all the registered
+    // access nodes!
+    assert_eq!(
+        access_node_count,
+        client.scan_session_state.unwrap().count as i64
+    );
+
+    // This is a minimal roundtrip test
 }
