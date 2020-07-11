@@ -37,12 +37,16 @@ impl StreakerApp {
         warp::any().map(move || sessions.clone())
     }
 
-    pub fn route_api_token_fetch(&self) -> impl Filter<Extract = (Json,), Error = Rejection> {
+    pub fn route_api_token_fetch(
+        &self,
+    ) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
         let token_path = warp::path!("api" / "v1" / "token" / "fetch");
         warp::post().and(token_path).map(token::fetch)
     }
 
-    pub fn route_api_anode_attribution(&self) -> impl Filter<Extract = (Json,), Error = Rejection> {
+    pub fn route_api_anode_attribution(
+        &self,
+    ) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
         warp::post()
             .and(warp::path!("api" / "v1" / "anode" / "attribution"))
             // NOTE: how the type system works here
@@ -54,7 +58,7 @@ impl StreakerApp {
             .and_then(anode::attribution)
     }
 
-    pub fn route_ws(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> {
+    pub fn route_ws(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         warp::path!("ws" / String)
             .and(warp::ws())
             .and(self.route_sessions_any())
@@ -65,13 +69,8 @@ impl StreakerApp {
     }
 
     // https://github.com/seanmonstar/warp/issues/53#issuecomment-412367454
-    pub fn routes(&self) -> BoxedFilter<(impl Reply,)> {
+    pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         let log = warp::log("streaker");
-
-        let api = warp::any().map(|| "OPES Unite Streaker API");
-
-        let token_path = warp::path!("api" / "v1" / "token" / "fetch");
-        let token_fetch = warp::post().and(token_path).map(token::fetch);
 
         let cors_origin: &str =
             &dotenv::var("STREAKER_CORS_ORIGIN").expect("STREAKER_CORS_ORIGIN must be set");
@@ -81,45 +80,11 @@ impl StreakerApp {
             .allow_method("GET")
             .allow_method("POST");
 
-        // db_pool arc copy filter
-        let db_pool_any = {
-            let pool = self.pool.clone();
-            warp::any().map(move || pool.clone())
-        };
-
-        // build a filter which clones our Arc on each
-        // new connection request.
-        let websocket_sessions_any = {
-            let sessions = self.sessions.clone();
-            warp::any().map(move || sessions.clone())
-        };
-
-        let websocket = warp::path!("ws" / String)
-            .and(warp::ws())
-            .and(websocket_sessions_any.clone())
-            .and(db_pool_any.clone())
-            .map(|token: String, ws: warp::ws::Ws, sessions, pool| {
-                ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket))
-            });
-
-        // the attribution from the access node
-        let attribution = warp::post()
-            .and(warp::path!("api" / "v1" / "anode" / "attribution"))
-            // NOTE: how the type system works here
-            // I specify the json body here, and it magically deserialises
-            // in the signature of the map beneath
-            .and(warp::body::json())
-            .and(websocket_sessions_any.clone())
-            .and(db_pool_any.clone())
-            .and_then(anode::attribution);
-
-        websocket
-            .or(attribution)
-            .or(token_fetch)
-            .or(api)
+        self.route_ws()
+            .or(self.route_api_anode_attribution())
+            .or(self.route_api_token_fetch())
             .with(cors)
             .with(log)
-            .boxed()
     }
 }
 

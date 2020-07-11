@@ -29,6 +29,7 @@ url = "2.1.1"
 sqlx-pg-migrate = "1.0.4"
 include_dir = "0.6.0"
 thiserror = "1.0.20"
+bytes = "0.5.5"
 
 [[bin]]
 name = "migrate"
