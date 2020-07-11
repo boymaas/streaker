@@ -58,10 +58,12 @@ async fn test_streaker_client() {
     while let Some(ScanSessionState {
         next_anode: Some(anode),
         ..
-    }) = client.scan_session_state.clone()
-    // NOTE the colone is necessary as I cannot borrow immutable and mutable
-    // at the same time
+    }) = &client.scan_session_state
     {
+        // NOTE the colone is necessary as I cannot borrow immutable and mutable
+        // at the same time. As I am not referencing the borrow anymore. I can access
+        // the struct immutable doing the post_attribution_scan.
+        let anode = anode.clone();
         client
             .post_attribution_scan(&anode, "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
             .await;
