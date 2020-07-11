@@ -69,7 +69,9 @@ pub fn generate_authenticated_token(suuid: &Uuid, visitorid: &String) -> String 
     .unwrap()
 }
 
-pub fn decode_token(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+pub type DecodedToken = TokenData<Claims>;
+
+pub fn decode_token(token: &str) -> Result<DecodedToken, jsonwebtoken::errors::Error> {
     decode::<Claims>(
         &token,
         &DecodingKey::from_secret(SECRET.as_ref()),

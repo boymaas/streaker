@@ -1,6 +1,8 @@
 use sqlx::postgres::PgPool;
+use std::convert::Infallible;
 use warp::filters::BoxedFilter;
-use warp::{Filter, Reply};
+use warp::reply::Json;
+use warp::{Filter, Rejection, Reply};
 
 pub mod anode;
 pub mod token;
@@ -19,6 +21,47 @@ impl StreakerApp {
             pool,
             sessions: ws::Sessions::default(),
         }
+    }
+
+    pub fn route_db_pool_any(
+        &self,
+    ) -> impl Filter<Extract = (PgPool,), Error = Infallible> + Clone {
+        let pool = self.pool.clone();
+        warp::any().map(move || pool.clone())
+    }
+
+    pub fn route_sessions_any(
+        &self,
+    ) -> impl Filter<Extract = (ws::Sessions,), Error = Infallible> + Clone {
+        let sessions = self.sessions.clone();
+        warp::any().map(move || sessions.clone())
+    }
+
+    pub fn route_api_token_fetch(&self) -> impl Filter<Extract = (Json,), Error = Rejection> {
+        let token_path = warp::path!("api" / "v1" / "token" / "fetch");
+        warp::post().and(token_path).map(token::fetch)
+    }
+
+    pub fn route_api_anode_attribution(&self) -> impl Filter<Extract = (Json,), Error = Rejection> {
+        warp::post()
+            .and(warp::path!("api" / "v1" / "anode" / "attribution"))
+            // NOTE: how the type system works here
+            // I specify the json body here, and it magically deserialises
+            // in the signature of the map beneath
+            .and(warp::body::json())
+            .and(self.route_sessions_any())
+            .and(self.route_db_pool_any())
+            .and_then(anode::attribution)
+    }
+
+    pub fn route_ws(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> {
+        warp::path!("ws" / String)
+            .and(warp::ws())
+            .and(self.route_sessions_any())
+            .and(self.route_db_pool_any())
+            .map(|token: String, ws: warp::ws::Ws, sessions, pool| {
+                ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket))
+            })
     }
 
     // https://github.com/seanmonstar/warp/issues/53#issuecomment-412367454
