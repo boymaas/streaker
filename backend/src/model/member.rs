@@ -41,7 +41,7 @@ impl Member {
     }
 
     pub async fn update_streak_info(
-        &self,
+        &mut self,
         pool: &mut PgConnection,
         streak_current: i32,
         streak_bucket: i32,
@@ -59,6 +59,8 @@ impl Member {
         .execute(pool)
         .await?;
         if rows_affected == 1 {
+            self.streak_current = streak_current;
+            self.streak_bucket = streak_bucket;
             Ok(true)
         } else {
             Err(anyhow::anyhow!(

@@ -48,16 +48,20 @@ impl ScanSession {
         visitorid: &str,
         time: &DateTime<Utc>,
     ) -> Result<ScanSession> {
+        // aligned to 0:00 UTC
+        let begin = time.clone().date().and_hms(0, 0, 0);
+
         // if we have one, check if it is still valid against
         // UTC time. Notice the ? to leave early on error.
+        // TODO: this can be made prettyer
         if let Some(session) = Self::latest(pool, visitorid).await? {
-            Ok(session)
-        } else {
-            // we don't have one, so lets create one
-            // aligned to 0:00 UTC
-            let begin = time.clone().date().and_hms(0, 0, 0);
-            Ok(Self::create(pool, visitorid, &begin).await?)
+            if session.begin == begin {
+                return Ok(session);
+            }
         }
+        // we don't have one, or the one we have has been expired
+        // so lets create one
+        Ok(Self::create(pool, visitorid, &begin).await?)
     }
 
     // build the scansession state, used to send to the client

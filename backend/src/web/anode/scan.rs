@@ -43,7 +43,7 @@ async fn attribution_scan_inner(
             last_scan.map(|ls| ls.tstamp),
         );
 
-        let streak_state = streak_logic.evaluate(time);
+        let mut streak_state = streak_logic.evaluate(time);
 
         // if we missed a streak last time, update
         // our member to reflect the penalty. Essentially
@@ -65,11 +65,14 @@ async fn attribution_scan_inner(
         } else if streak_state.days_since_last_scan == 1 {
             // we are scanning in the 24-48 hours after the scan
             // window of our last scan, as such we earned a streak!
+
+            // lets update our streakstate, as we want to send it
+            // later in this function
             member
                 .update_streak_info(
                     conn,
-                    streak_state.streak_current + 1,
-                    streak_state.streak_bucket + 1,
+                    streak_state.streak_current,
+                    streak_state.streak_bucket,
                 )
                 .await?;
         }

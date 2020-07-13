@@ -50,11 +50,22 @@ impl StreakLogic {
         println!("{:?}", days_since_last_scan);
 
         match days_since_last_scan {
-            0 | 1 => {
+            0 => {
                 let bucket = RewardsProgram::find_bucket(self.streak_bucket);
                 StreakState {
                     streak_current: self.streak_current,
                     streak_bucket: self.streak_bucket,
+                    streak_missed: 0,
+                    bucket: bucket,
+                    days_since_last_scan,
+                    mining_ratio: RewardsProgram::find_mining_ratio(bucket),
+                }
+            }
+            1 => {
+                let bucket = RewardsProgram::find_bucket(self.streak_bucket + 1);
+                StreakState {
+                    streak_current: self.streak_current + 1,
+                    streak_bucket: self.streak_bucket + 1,
                     streak_missed: 0,
                     bucket: bucket,
                     days_since_last_scan,

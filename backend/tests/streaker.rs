@@ -123,6 +123,37 @@ async fn test_streaker_client() -> Result<()> {
     Ok(())
 }
 
+fn assert_member_state(client: &StreakerClient, streak_current: i32, streak_bucket: i32) {
+    let member_state = client.member_state.as_ref().unwrap();
+    assert_eq!(member_state.streak_current, streak_current);
+    assert_eq!(member_state.streak_bucket, streak_bucket);
+}
+
+fn assert_scan_session_state(client: &StreakerClient, count: u16, begin: DateTime<Utc>) {
+    let scan_session_state = client.scan_session_state.as_ref().unwrap();
+    assert_eq!(scan_session_state.count, count);
+    assert_eq!(scan_session_state.total, 31);
+    assert_eq!(scan_session_state.begin, begin.date().and_hms(0, 0, 0));
+}
+
+fn assert_streak_state(
+    client: &StreakerClient,
+    streak_current: i32,
+    streak_bucket: i32,
+    streak_missed: i32,
+    bucket: i32,
+    mining_ratio: f64,
+    days_since: i32,
+) {
+    let streak_state = client.streak_state.as_ref().unwrap();
+    assert_eq!(streak_state.streak_current, streak_current);
+    assert_eq!(streak_state.streak_bucket, streak_bucket);
+    assert_eq!(streak_state.streak_missed, streak_missed);
+    assert_eq!(streak_state.bucket, bucket);
+    assert_eq!(streak_state.mining_ratio, mining_ratio);
+    assert_eq!(streak_state.days_since_last_scan, days_since);
+}
+
 #[tokio::test]
 async fn test_correct_registration_of_streaks() -> Result<()> {
     fn now() -> DateTime<Utc> {
@@ -132,17 +163,84 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     let visitorid = "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP";
     let mut client = prepare_test_client_and_login("opesdentist", visitorid, now).await;
 
+    // Start with a 0 streak/bucket and 0 streak count
+    assert_member_state(&client, 0, 0);
+    assert_scan_session_state(&client, 0, now());
+    assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
+
     // now the client scans today, one scan
     client.post_attribution_scan("opesgames", visitorid).await;
 
-    // now lets move to the next day
-    fn tomorrow() -> DateTime<Utc> {
-        Utc.ymd(2020, 01, 02).and_hms(12, 0, 0)
-    }
-    client.set_time(tomorrow);
+    // first scan as such streaks stat 0
+    assert_member_state(&client, 0, 0);
+    assert_scan_session_state(&client, 1, now());
+    assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
 
     // now the client scans again
     client.post_attribution_scan("opesgames", visitorid).await;
+
+    // new scan session state with 1
+    assert_member_state(&client, 0, 0);
+    assert_scan_session_state(&client, 2, now());
+    assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
+
+    // ===> now lets move to the next day
+    fn now_plus_one() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 02).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_one);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // this was a day after, so we want to see a streak of 1
+    assert_member_state(&client, 1, 1);
+    assert_scan_session_state(&client, 1, now_plus_one());
+    assert_streak_state(&client, 1, 1, 0, 0, 0.0025, 1);
+
+    // ===> now lets move to the next day
+    fn now_plus_two() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 03).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_two);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // this was a day after, so we want to see a streak of 2
+    assert_member_state(&client, 2, 2);
+    assert_scan_session_state(&client, 1, now_plus_two());
+    assert_streak_state(&client, 2, 2, 0, 0, 0.0025, 1);
+
+    // ===> now lets move to the next day
+    fn now_plus_three() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 04).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_three);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // this was a day after, so we want to see a streak of 2
+    assert_member_state(&client, 3, 3);
+    assert_scan_session_state(&client, 1, now_plus_three());
+    assert_streak_state(&client, 3, 3, 0, 0, 0.0025, 1);
+
+    // ===> now lets move to the next day, now we should see
+    // a bucket shift
+    fn now_plus_four() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 05).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_four);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // this was a day after, so we want to see and increase
+    // in streak size, and in this case, also an increase in bucket
+    assert_member_state(&client, 4, 4);
+    assert_scan_session_state(&client, 1, now_plus_four());
+    assert_streak_state(&client, 4, 4, 0, 1, 0.003, 1);
 
     Ok(())
 }
