@@ -31,7 +31,7 @@ impl StreakLogic {
         }
     }
 
-    pub fn evaluate(&self, at: DateTime<Utc>) -> StreakState {
+    pub fn evaluate(&self, at: &DateTime<Utc>) -> StreakState {
         // if we do not have a last scan, it is simple
         // no scan was performed and thus streakstate is default
         if self.last_scan.is_none() {
@@ -92,7 +92,7 @@ fn test_evaluate() {
 
     // lets start from the beginning
     let logic = StreakLogic::new(0, 0, None);
-    let state = logic.evaluate(add_hours(8));
+    let state = logic.evaluate(&add_hours(8));
 
     assert_eq!(
         state,
@@ -102,12 +102,13 @@ fn test_evaluate() {
             streak_missed: 0,
             bucket: 0,
             mining_ratio: 0.0025,
+            days_since_last_scan: 0
         }
     );
 
     // now we have one streak
     let logic = StreakLogic::new(1, 1, Some(last_scan));
-    let state = logic.evaluate(add_hours(2));
+    let state = logic.evaluate(&add_hours(2));
 
     assert_eq!(
         state,
@@ -117,6 +118,7 @@ fn test_evaluate() {
             streak_missed: 0,
             bucket: 0,
             mining_ratio: 0.0025,
+            days_since_last_scan: 0
         }
     );
 

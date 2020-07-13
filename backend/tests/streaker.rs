@@ -34,7 +34,9 @@ async fn prepare_test_client_and_login(
 ) -> StreakerClient {
     let app = prepare_test_app().await;
 
+    // create client, and set the time
     let mut client = StreakerClient::new(app);
+    client.set_time(timefn);
 
     // Connect, this will get our first
     // unauthenticated token

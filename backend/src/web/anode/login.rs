@@ -2,6 +2,7 @@
 // to the websocket channel, and generate
 // a new token and send it over the websocket
 use anyhow::Result;
+use chrono::{DateTime, Utc};
 use serde_json::json;
 use sqlx::PgPool;
 use warp;
@@ -22,6 +23,7 @@ pub async fn attribution_login(
     attr: Attribution,
     ws_sessions: Sessions,
     pool: PgPool,
+    time: &DateTime<Utc>,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("LOGIN: {:?}", attr);
     let mut conn = pool

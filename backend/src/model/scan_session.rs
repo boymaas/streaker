@@ -23,13 +23,18 @@ impl ScanSession {
         }
     }
 
-    pub async fn register_scan(&self, pool: &mut PgConnection, anode: &str) -> Result<Scan> {
+    pub async fn register_scan(
+        &self,
+        pool: &mut PgConnection,
+        anode: &str,
+        time: &DateTime<Utc>,
+    ) -> Result<Scan> {
         let scan: Scan = sqlx::query_as!(
             Scan,
             "INSERT INTO scans (scansession,anode,tstamp) VALUES ( $1, $2, $3 ) returning *",
             self.uuid,
             anode,
-            Utc::now()
+            *time
         )
         .fetch_one(pool)
         .await?;
@@ -38,7 +43,11 @@ impl ScanSession {
 
     // fetches current scansession, appropiate for server
     // time.
-    pub async fn current(pool: &mut PgConnection, visitorid: &str) -> Result<ScanSession> {
+    pub async fn current(
+        pool: &mut PgConnection,
+        visitorid: &str,
+        time: &DateTime<Utc>,
+    ) -> Result<ScanSession> {
         // if we have one, check if it is still valid against
         // UTC time. Notice the ? to leave early on error.
         if let Some(session) = Self::latest(pool, visitorid).await? {
@@ -46,15 +55,19 @@ impl ScanSession {
         } else {
             // we don't have one, so lets create one
             // aligned to 0:00 UTC
-            let begin = &Utc::now().date().and_hms(0, 0, 0);
-            Ok(Self::create(pool, visitorid, begin).await?)
+            let begin = time.clone().date().and_hms(0, 0, 0);
+            Ok(Self::create(pool, visitorid, &begin).await?)
         }
     }
 
     // build the scansession state, used to send to the client
     // to render the scan! page
-    pub async fn scan_session_state(&self, pool: &mut PgConnection) -> Result<ScanSessionState> {
-        let scan_session = Self::current(pool, &self.visitorid).await?;
+    pub async fn scan_session_state(
+        &self,
+        pool: &mut PgConnection,
+        time: &DateTime<Utc>,
+    ) -> Result<ScanSessionState> {
+        let scan_session = Self::current(pool, &self.visitorid, time).await?;
 
         // NOTE: https://github.com/launchbadge/sqlx/issues/257
         // see the reborrows here. Since the fetch method is

@@ -101,8 +101,10 @@ pub async fn handle(
             send_response(&tx, &WsResponse::MemberState(member.clone().into()));
 
             // find our current scansession
-            if let Ok(scan_session) = ScanSession::current(&mut conn, &visitorid).await {
-                if let Ok(scan_session_state) = scan_session.scan_session_state(&mut conn).await {
+            if let Ok(scan_session) = ScanSession::current(&mut conn, &visitorid, &time).await {
+                if let Ok(scan_session_state) =
+                    scan_session.scan_session_state(&mut conn, &time).await
+                {
                     send_response(&tx, &WsResponse::ScanSessionState(scan_session_state));
                 }
             }
@@ -116,7 +118,7 @@ pub async fn handle(
                     member.streak_bucket,
                     last_scan.map(|ls| ls.tstamp),
                 );
-                let streak_state = streak_logic.evaluate(Utc::now());
+                let streak_state = streak_logic.evaluate(&time);
                 send_response(&tx, &WsResponse::StreakState(streak_state));
             }
         } else {

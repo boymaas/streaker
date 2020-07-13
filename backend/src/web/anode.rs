@@ -121,8 +121,8 @@ pub async fn attribution(
     time: DateTime<Utc>,
 ) -> Result<Json, warp::reject::Rejection> {
     match attr.claim.source.action {
-        SourceAction::Login => attribution_login(attr, ws_sessions, pool).await,
-        SourceAction::Scan => attribution_scan(attr, ws_sessions, pool).await,
+        SourceAction::Login => attribution_login(attr, ws_sessions, pool, &time).await,
+        SourceAction::Scan => attribution_scan(attr, ws_sessions, pool, &time).await,
     }
 }
 

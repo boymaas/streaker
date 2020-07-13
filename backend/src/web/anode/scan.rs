@@ -2,7 +2,7 @@
 // to the websocket channel, and generate
 // a new token and send it over the websocket
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde_json::json;
 use sqlx::{PgConnection, PgPool};
 use warp;
@@ -24,6 +24,7 @@ async fn attribution_scan_inner(
     attr: Attribution,
     ws_sessions: Sessions,
     conn: &mut PgConnection,
+    time: &DateTime<Utc>,
 ) -> Result<Json> {
     // lets get the visitorid from this ws_connection, this visitorid
     // has been set on a websocket connection with an authenticated token.
@@ -42,7 +43,7 @@ async fn attribution_scan_inner(
             last_scan.map(|ls| ls.tstamp),
         );
 
-        let streak_state = streak_logic.evaluate(Utc::now());
+        let streak_state = streak_logic.evaluate(time);
 
         // if we missed a streak last time, update
         // our member to reflect the penalty. Essentially
@@ -78,16 +79,16 @@ async fn attribution_scan_inner(
 
         // TODO: link them together &attr.claim.visitorid
         // Find our current scan sesssion, this could be a new one
-        let scan_session = ScanSession::current(conn, visitorid).await?;
+        let scan_session = ScanSession::current(conn, visitorid, time).await?;
 
         // and register our scan, effectively setting last scan to now
         scan_session
-            .register_scan(conn, &attr.access_node_name)
+            .register_scan(conn, &attr.access_node_name, time)
             .await?;
 
         // now generating a new scan session state based on the newly registered
         // scan. As now we need a new next-anode to scan.
-        let scan_session_state = scan_session.scan_session_state(conn).await?;
+        let scan_session_state = scan_session.scan_session_state(conn, time).await?;
         send_response(
             &ws_channel,
             &WsResponse::ScanSessionState(scan_session_state),
@@ -106,6 +107,7 @@ pub async fn attribution_scan(
     attr: Attribution,
     ws_sessions: Sessions,
     pool: PgPool,
+    time: &DateTime<Utc>,
 ) -> Result<Json, warp::reject::Rejection> {
     log::info!("SCAN: {:?}", attr);
 
@@ -120,7 +122,7 @@ pub async fn attribution_scan(
         .await
         .map_err(reject("Could not start transaction"))?;
 
-    let result = attribution_scan_inner(attr, ws_sessions, &mut transaction)
+    let result = attribution_scan_inner(attr, ws_sessions, &mut transaction, time)
         .await
         .map_err(reject("problem executing attribution"))?;
 
