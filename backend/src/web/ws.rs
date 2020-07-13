@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use futures::{FutureExt, StreamExt};
 use log;
 use serde_json;
@@ -29,7 +29,13 @@ pub fn send_response(tx: &WsChannel, ws_response: &WsResponse) {
     .unwrap();
 }
 
-pub async fn handle(sessions: Sessions, pool: PgPool, token: String, socket: warp::ws::WebSocket) {
+pub async fn handle(
+    sessions: Sessions,
+    pool: PgPool,
+    token: String,
+    socket: warp::ws::WebSocket,
+    time: DateTime<Utc>,
+) {
     // when we already have another tab open, we can send a message to the
     // previous open tab to close that one.
 

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use sqlx::postgres::PgPool;
 use std::convert::Infallible;
 use warp::filters::BoxedFilter;
@@ -39,13 +40,18 @@ impl StreakerApp {
 
     pub fn route_api_token_fetch(
         &self,
+        timefn: fn() -> DateTime<Utc>,
     ) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
         let token_path = warp::path!("api" / "v1" / "token" / "fetch");
-        warp::post().and(token_path).map(token::fetch)
+        warp::post()
+            .and(token_path)
+            .and(warp::any().map(timefn))
+            .map(token::fetch)
     }
 
     pub fn route_api_anode_attribution(
         &self,
+        timefn: fn() -> DateTime<Utc>,
     ) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
         warp::post()
             .and(warp::path!("api" / "v1" / "anode" / "attribution"))
@@ -55,21 +61,31 @@ impl StreakerApp {
             .and(warp::body::json())
             .and(self.route_sessions_any())
             .and(self.route_db_pool_any())
+            .and(warp::any().map(timefn))
             .and_then(anode::attribution)
     }
 
-    pub fn route_ws(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+    pub fn route_ws(
+        &self,
+        timefn: fn() -> DateTime<Utc>,
+    ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         warp::path!("ws" / String)
             .and(warp::ws())
             .and(self.route_sessions_any())
             .and(self.route_db_pool_any())
-            .map(|token: String, ws: warp::ws::Ws, sessions, pool| {
-                ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket))
-            })
+            .and(warp::any().map(timefn))
+            .map(
+                |token: String, ws: warp::ws::Ws, sessions, pool, time: DateTime<Utc>| {
+                    ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket, time))
+                },
+            )
     }
 
     // https://github.com/seanmonstar/warp/issues/53#issuecomment-412367454
-    pub fn routes(&self) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+    pub fn routes(
+        &self,
+        timefn: fn() -> DateTime<Utc>,
+    ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
         let log = warp::log("streaker");
 
         let cors_origin: &str =
@@ -80,9 +96,9 @@ impl StreakerApp {
             .allow_method("GET")
             .allow_method("POST");
 
-        self.route_ws()
-            .or(self.route_api_anode_attribution())
-            .or(self.route_api_token_fetch())
+        self.route_ws(timefn)
+            .or(self.route_api_anode_attribution(timefn))
+            .or(self.route_api_token_fetch(timefn))
             .with(cors)
             .with(log)
     }
@@ -90,7 +106,7 @@ impl StreakerApp {
 
 pub async fn start(pool: PgPool) {
     let app = StreakerApp::new(pool);
-    let routes = app.routes();
+    let routes = app.routes(Utc::now);
 
     // since we will be running inside a docker container
     // our server should exit on a CTRL-C

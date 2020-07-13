@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::sync::Once;
 
 use bytes::Bytes;
+use chrono::{DateTime, Utc};
 use dotenv;
 use pretty_env_logger;
 use serde::Deserialize;
@@ -37,8 +38,10 @@ pub struct StreakerClient {
     pub member_state: Option<MemberState>,
     pub scan_session_state: Option<ScanSessionState>,
     pub streak_state: Option<StreakState>,
+    pub timefn: fn() -> DateTime<Utc>,
 }
 
+// https://stackoverflow.com/a/52934680
 impl StreakerClient {
     pub fn new(streaker_app: StreakerApp) -> Self {
         Self {
@@ -50,7 +53,13 @@ impl StreakerClient {
             member_state: None,
             scan_session_state: None,
             streak_state: None,
+
+            timefn: Utc::now,
         }
+    }
+
+    pub fn set_time(&mut self, timefn: fn() -> DateTime<Utc>) {
+        self.timefn = timefn;
     }
 
     // connects like the web client would do. First fetch
@@ -61,7 +70,7 @@ impl StreakerClient {
             .path("/api/v1/token/fetch")
             .method("POST")
             .header("content-type", "application/json")
-            .reply(&self.streaker_app.routes())
+            .reply(&self.streaker_app.routes(self.timefn))
             .await;
 
         assert_eq!(res.status(), 200);
@@ -90,7 +99,7 @@ impl StreakerClient {
 
         let mut client = warp::test::ws()
             .path(&ws_path)
-            .handshake(self.streaker_app.route_ws())
+            .handshake(self.streaker_app.route_ws(self.timefn))
             .await
             .expect("could not do a handshake");
 
@@ -131,7 +140,7 @@ impl StreakerClient {
             .header("content-length", body.len())
             .header("content-type", "application/json")
             .body(body)
-            .reply(&self.streaker_app.routes())
+            .reply(&self.streaker_app.routes(self.timefn))
             .await;
 
         assert_eq!(res.status(), 200);
@@ -171,7 +180,7 @@ impl StreakerClient {
             .header("content-length", body.len())
             .header("content-type", "application/json")
             .body(body)
-            .reply(&self.streaker_app.routes())
+            .reply(&self.streaker_app.routes(self.timefn))
             .await;
 
         assert_eq!(res.status(), 200);
