@@ -30,7 +30,10 @@ impl RewardsProgram {
         return 0;
     }
     pub fn find_streak_bucket(bucket: Bucket) -> StreakDays {
-        BUCKET[bucket.min(BUCKET.len() as i32) as usize]
+        if bucket == 0 {
+            return 0;
+        }
+        BUCKET[bucket.min(BUCKET.len() as i32) as usize] + 1
     }
 }
 
@@ -43,6 +46,18 @@ fn test_find_bucket() {
     assert_eq!(RewardsProgram::find_bucket(11), 3);
     assert_eq!(RewardsProgram::find_bucket(75), 9);
     assert_eq!(RewardsProgram::find_bucket(100), 10);
+}
+
+#[test]
+fn test_find_streak_bucket() {
+    assert_eq!(RewardsProgram::find_streak_bucket(0), 0);
+    assert_eq!(RewardsProgram::find_streak_bucket(1), 4);
+    assert_eq!(RewardsProgram::find_streak_bucket(2), 6);
+    assert_eq!(RewardsProgram::find_streak_bucket(3), 11);
+    assert_eq!(RewardsProgram::find_streak_bucket(4), 21);
+    assert_eq!(RewardsProgram::find_streak_bucket(5), 31);
+    assert_eq!(RewardsProgram::find_streak_bucket(6), 41);
+    assert_eq!(RewardsProgram::find_streak_bucket(7), 51);
 }
 
 #[test]
