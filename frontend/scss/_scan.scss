@@ -1,7 +1,38 @@
 #scan {
+    
+
     .qrcode {
         width: 400px;
         height: 400px;
-        margin: 100px auto;
+        margin: 20px auto;
     }
+
+    .earned {
+        width: 400px;
+        margin: 100px auto 0px auto;
+        
+        .amount {
+            span {
+                opacity: 0.6;
+            }
+            display: block;
+            font-weight: 800;
+            font-size: 48px;
+            color: #FFFFFF;
+            letter-spacing: 6.44px;
+            text-align: center;
+            padding-right: 1em;
+        }
+        .subtext {
+            display: block;
+            font-size: 12px;
+            color: #FFFFFF;
+            letter-spacing: 20px;
+            text-align: center;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+    }
+
+
 }

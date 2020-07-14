@@ -8,8 +8,8 @@ edition = "2018"
 
 [dependencies]
 serde = {version = "1.0.114", features = ["derive"]}
-chrono = { version = "0.4.13", features = ["serde"] }
-uuid = {version="0.8.1", features=["serde", "v4"]}
+chrono = { version = "0.4.13", features = ["serde", "wasmbind"] }
+uuid = {version="0.8.1", features=["serde", "v4", "wasm-bindgen"]}
 # needs to be this version, newer version 
 # of time does not support date arithmetic
 time = "0.1.43"

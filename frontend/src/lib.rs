@@ -119,8 +119,15 @@ impl Component for Root {
                 if token::is_authenticated() {
                     log::info!("Authenticated token");
 
-                    self.router_agent
-                        .send(ChangeRoute(AppRoute::DashBoard.into()));
+                    // TODO: when we are authenticated, only change
+                    // route when not in set
+                    match self.current_route {
+                        Some(AppRoute::Scans) => {}
+                        // all other routes redirect
+                        _ => self
+                            .router_agent
+                            .send(ChangeRoute(AppRoute::DashBoard.into())),
+                    }
                 } else {
                     self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
                 }
@@ -237,7 +244,7 @@ impl Component for Root {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state />},
-                            AppRoute::Scans => html!{<Scan member_state=&self.member_state />},
+                            AppRoute::Scans => html!{<Scan member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />},
                             _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
 
                         }

@@ -38,6 +38,7 @@ impl Component for DashBoard {
         // out of the option. As the options is behind a shared reference.
         let streak_state = self.props.streak_state.clone().unwrap_or_default();
 
+        // TODO: we have a max level, communicate this
         let nlevel_streaks = RewardsProgram::find_streak_bucket(streak_state.bucket + 1);
         let nlevel_mining_ratio = RewardsProgram::find_mining_ratio(streak_state.bucket + 1);
 

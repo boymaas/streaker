@@ -30,6 +30,18 @@ pub struct ScanSessionState {
     pub begin: DateTime<Utc>,
 }
 
+impl Default for ScanSessionState {
+    fn default() -> ScanSessionState {
+        ScanSessionState {
+            uuid: Uuid::nil(),
+            count: 0,
+            total: 0,
+            next_anode: None,
+            begin: Utc::now().date().and_hms(0, 0, 0),
+        }
+    }
+}
+
 // This is the response after
 // successfull connecion
 #[derive(Serialize, Deserialize, Debug)]

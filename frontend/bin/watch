@@ -1,1 +1,1 @@
-cargo watch --postpone -s bin/build
+cargo watch  -s bin/build

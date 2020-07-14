@@ -24,8 +24,9 @@ wasm-logger = "0.2.0"
 serde = "1.0.114"
 thiserror = "1.0.20"
 jsonwebtoken = "7.1.2"
-uuid = {version="0.8.1", features=["serde", "v4"]}
 streaker-common = {version = "0.1.0", path="../common"}
+uuid = {version="0.8.1", features=["serde", "v4", "wasm-bindgen"]}
+chrono = { version = "0.4.13", features = ["serde", "wasmbind"] }
 
 
 [dependencies.web-sys]
