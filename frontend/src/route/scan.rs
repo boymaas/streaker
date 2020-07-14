@@ -66,18 +66,29 @@ impl Component for Scan {
             <div class="earned">
               <span class="amount">
                 <span>{ "$" }</span>
-                 { format!("{:.4}", 0.2)  }
+                 { format!("{:.4}", streak_s.mining_ratio * scan_session_s.count as f64)  }
               </span>
-              <span class="subtext">{ "EARNED" }</span>
+              <span class="subtext">{ "EARNED TODAY" }</span>
             </div>
             <div class="qrcode">
                 <RawHTML inner_html={qrcode} />
             </div>
-            <div class="scansleft">
-              <span class="amount">
-                 { scan_session_s.total - scan_session_s.count }
-              </span>
-              <span class="subtext">{ "SCANS LEFT" }</span>
+
+            <div class="stats grid halves">
+                <div class="col scansleft">
+                  <span class="amount">
+                     { scan_session_s.total - scan_session_s.count }
+                  </span>
+                  <span class="subtext">{ "SCANS LEFT" }</span>
+                </div>
+
+                <div class="col remaining">
+                  <span class="amount">
+                    <span>{ "$" }</span>
+                     { format!("{:.4}", streak_s.mining_ratio * ( scan_session_s.total - scan_session_s.count) as f64)  }
+                  </span>
+                  <span class="subtext">{ "REMAINING TODAY" }</span>
+                </div>
             </div>
 
         </div>

@@ -9,7 +9,7 @@ pub fn generate(name: &str, anode: &str, source: &str) -> SvgCode {
     let url = Url::parse_with_params(
         "https://mobile.opes.pe/opesapp/check-in",
         &[
-            ("name", "Streaker Login"),
+            ("name", name),
             ("url", &anode_url.to_string()),
             ("source", source),
         ],

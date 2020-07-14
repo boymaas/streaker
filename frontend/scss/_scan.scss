@@ -1,15 +1,12 @@
 #scan {
-    
-
     .qrcode {
         width: 400px;
         height: 400px;
-        margin: 20px auto;
+        margin: 40px auto;
     }
 
-    .earned {
-        width: 400px;
-        margin: 100px auto 0px auto;
+    .earned,.scansleft,.remaining {
+        margin: 80px auto 20px auto;
         
         .amount {
             span {
@@ -31,7 +28,33 @@
             text-align: center;
             overflow: hidden;
             margin-top: 10px;
+            opacity: 0.8;
         }
+    }
+
+    .stats {
+        width: 400px;
+        margin: 0px auto;
+
+        .amount {
+            padding: 0;
+            font-size: 32px;
+            font-weight: 500;
+        }
+        .subtext {
+            font-size: 12px;
+            letter-spacing: 4px;
+            opacity: 0.5;
+        }
+
+
+        .scansleft {
+            margin-top: 10px;
+        }
+        .remaining {
+            margin-top: 10px;
+        }
+
     }
 
 

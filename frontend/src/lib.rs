@@ -244,7 +244,15 @@ impl Component for Root {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state />},
-                            AppRoute::Scans => html!{<Scan member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />},
+                            AppRoute::Scans => {
+                                if self.scan_session_state.as_ref().map(|s| &s.next_anode).is_some() {
+                                    html!{<Scan member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />}
+                                } else {
+                                    // TODO: display a nice page with completed message
+                                    // and a timer displaying when you can scan again.
+                                    html!{<p class="no-impl">{ "Completed" }</p>}
+                                }
+                            },
                             _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
 
                         }
