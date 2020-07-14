@@ -68,6 +68,28 @@ impl Member {
             ))
         }
     }
+
+    pub async fn reward(&mut self, pool: &mut PgConnection, amount: f64) -> Result<bool> {
+        let rows_affected = sqlx::query!(
+            r#"
+                UPDATE members SET balance = balance + $1
+                WHERE visitorid = $2
+            "#,
+            amount,
+            self.visitorid
+        )
+        // NOTE execute discards the results and just returns the rows effected
+        .execute(pool)
+        .await?;
+        if rows_affected == 1 {
+            self.balance += amount;
+            Ok(true)
+        } else {
+            Err(anyhow::anyhow!(
+                "Invalid rows_affected when updating streak info"
+            ))
+        }
+    }
 }
 
 #[cfg(test)]

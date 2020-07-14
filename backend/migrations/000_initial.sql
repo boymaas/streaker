@@ -23,7 +23,8 @@ create table scansessions (
 create table scans (
 	scansession uuid references scansessions(uuid) not null,
 	anode varchar(128) references anodes(label) not null,
-	tstamp timestamp with time zone
+	tstamp timestamp with time zone,
+    UNIQUE(scansession,anode)
 );
 
 create table events (

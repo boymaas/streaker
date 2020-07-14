@@ -85,9 +85,6 @@ async fn attribution_scan_inner(
                 )
                 .await?;
         }
-        // now we have update our member state. If we haven't updated
-        // it we just send the state as is.
-        send_response(ws_channel, &WsResponse::MemberState(member.into()));
 
         // TODO: link them together &attr.claim.visitorid
         // Find our current scan sesssion, this could be a new one
@@ -97,6 +94,14 @@ async fn attribution_scan_inner(
         scan_session
             .register_scan(conn, &attr.access_node_name, time)
             .await?;
+
+        // after we registerd our scan, we can reward our member with
+        // UBUCKS in ration with the mining ratio
+        member.reward(conn, streak_state.mining_ratio).await;
+
+        // now we have updated our member state. If we haven't updated
+        // it we just send the state as is.
+        send_response(ws_channel, &WsResponse::MemberState(member.into()));
 
         // now generating a new scan session state based on the newly registered
         // scan. As now we need a new next-anode to scan.
