@@ -3,6 +3,7 @@ use std::sync::Once;
 use anyhow::Result;
 use chrono::{DateTime, TimeZone, Utc};
 use dotenv;
+use log;
 use pretty_env_logger;
 
 use streaker_common::ws::{MemberState, ScanSessionState, StreakState, WsResponse};
@@ -160,6 +161,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
         Utc.ymd(2020, 01, 01).and_hms(12, 0, 0)
     }
 
+    log::info!("First Login");
     let visitorid = "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP";
     let mut client = prepare_test_client_and_login("opesdentist", visitorid, now).await;
 
@@ -168,6 +170,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_scan_session_state(&client, 0, now());
     assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
 
+    log::info!("First scan");
     // now the client scans today, one scan
     client.post_attribution_scan("opesgames", visitorid).await;
 
@@ -176,6 +179,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_scan_session_state(&client, 1, now());
     assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
 
+    log::info!("Second scan same day");
     // now the client scans again
     client.post_attribution_scan("opesgames", visitorid).await;
 
@@ -185,6 +189,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_streak_state(&client, 0, 0, 0, 0, 0.0025, 0);
 
     // ===> now lets move to the next day
+    log::info!("New scan day 1");
     fn now_plus_one() -> DateTime<Utc> {
         Utc.ymd(2020, 01, 02).and_hms(12, 0, 0)
     }
@@ -199,6 +204,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_streak_state(&client, 1, 1, 0, 0, 0.0025, 1);
 
     // ===> now lets move to the next day
+    log::info!("New scan day 2");
     fn now_plus_two() -> DateTime<Utc> {
         Utc.ymd(2020, 01, 03).and_hms(12, 0, 0)
     }
@@ -213,6 +219,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_streak_state(&client, 2, 2, 0, 0, 0.0025, 1);
 
     // ===> now lets move to the next day
+    log::info!("New scan day 3");
     fn now_plus_three() -> DateTime<Utc> {
         Utc.ymd(2020, 01, 04).and_hms(12, 0, 0)
     }
@@ -228,6 +235,7 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
 
     // ===> now lets move to the next day, now we should see
     // a bucket shift
+    log::info!("New scan day 4, bucket shift");
     fn now_plus_four() -> DateTime<Utc> {
         Utc.ymd(2020, 01, 05).and_hms(12, 0, 0)
     }
@@ -241,6 +249,76 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
     assert_member_state(&client, 4, 4);
     assert_scan_session_state(&client, 1, now_plus_four());
     assert_streak_state(&client, 4, 4, 0, 1, 0.003, 1);
+
+    // ==> lets do one more scan
+    log::info!("New scan day 5");
+    fn now_plus_5() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 06).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_5);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // ==> lets do one more scan
+    log::info!("New scan day 6");
+    fn now_plus_6() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 07).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_6);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    assert_member_state(&client, 6, 6);
+    assert_scan_session_state(&client, 1, now_plus_6());
+    assert_streak_state(&client, 6, 6, 0, 2, 0.0034999999999999996, 1);
+
+    // ==> lets do one more scan
+    log::info!("New scan day 7");
+    fn now_plus_7() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 08).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_7);
+
+    // now the client scans again
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    assert_member_state(&client, 7, 7);
+    assert_scan_session_state(&client, 1, now_plus_7());
+    assert_streak_state(&client, 7, 7, 0, 2, 0.0034999999999999996, 1);
+
+    // Se we build up our streak to the second bucket, and we have a streak
+    // of 7. Now lets miss one day. First we login to check the state.
+    log::info!("New LOGIN day 9, we missed a day!");
+    fn now_plus_9() -> DateTime<Utc> {
+        Utc.ymd(2020, 01, 10).and_hms(12, 0, 0)
+    }
+    client.set_time(now_plus_9);
+
+    // now the client logs in
+    client.post_attribution_login("opesgames", visitorid).await;
+
+    // member_state is still in the expected state
+    assert_member_state(&client, 7, 7);
+    // a new scan session state has been created with a state of 0
+    assert_scan_session_state(&client, 0, now_plus_9());
+    // streat state now communicates the user missed a streak, we do this
+    // so we can communicate this on the client side.
+    // we lost our streak :(
+    assert_streak_state(&client, 0, 4, 1, 1, 0.003, 2);
+
+    // so now lets peform a scan, we exect the member state to be updated
+    log::info!("New SCAN day 9, we missed a day!");
+    client.post_attribution_scan("opesgames", visitorid).await;
+
+    // member_state is still in the expected state
+    assert_member_state(&client, 0, 4);
+    assert_scan_session_state(&client, 1, now_plus_9());
+    // streat state now communicates the user missed a streak, we do this
+    // so we can communicate this on the client side.
+    // we lost our streak :(
+    assert_streak_state(&client, 0, 4, 0, 1, 0.003, 0);
 
     Ok(())
 }

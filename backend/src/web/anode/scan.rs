@@ -37,7 +37,7 @@ async fn attribution_scan_inner(
         // for this we need our last registered scan. And some fields
         // of our member
         let last_scan = Scan::last_scan(conn, visitorid).await?;
-        let streak_logic = StreakLogic::new(
+        let mut streak_logic = StreakLogic::new(
             member.streak_current,
             member.streak_bucket,
             last_scan.map(|ls| ls.tstamp),
@@ -62,6 +62,15 @@ async fn attribution_scan_inner(
                     streak_state.streak_bucket,
                 )
                 .await?;
+            // we performed a scan right now, from a missed
+            // state, we just updated our member so we need
+            // to return an updated streak state.
+            streak_state = StreakLogic::new(
+                member.streak_current,
+                member.streak_bucket,
+                Some(time.clone()),
+            )
+            .evaluate(time);
         } else if streak_state.days_since_last_scan == 1 {
             // we are scanning in the 24-48 hours after the scan
             // window of our last scan, as such we earned a streak!

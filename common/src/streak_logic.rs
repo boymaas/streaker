@@ -80,7 +80,7 @@ impl StreakLogic {
                 bucket = (bucket - streak_missed).max(0);
 
                 // now realign our streak_bucket to the beginning of the bucket
-                let streak_bucket = RewardsProgram::find_streak_bucket(bucket);
+                let streak_bucket = RewardsProgram::find_streak_bucket(bucket) + 1;
                 StreakState {
                     // we missed a day, so our current streak is back to 0
                     streak_current: 0,
