@@ -29,7 +29,8 @@ impl Component for Login {
 
     fn view(&self) -> Html {
         let suuid = &token::get_token_suuid().unwrap().to_string();
-        let result = qrcode::generate("Streaker Login", "opesdentist", &format!("login:{}", suuid));
+        let anode_url = format!("https://{}.monetashi.io", "opesdentist");
+        let result = qrcode::generate("Streaker Login", &anode_url, &format!("login:{}", suuid));
 
         html! {
 

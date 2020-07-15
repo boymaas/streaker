@@ -43,12 +43,6 @@ impl Component for Scan {
     }
 
     fn view(&self) -> Html {
-        let suuid = &token::get_token_suuid().unwrap().to_string();
-        let qrcode = qrcode::generate("Streaker Scan", "opesdentist", &format!("scan:{}", suuid));
-
-        let date = Utc::now().date().and_hms(0, 0, 0);
-        log::info!("{:?}", date);
-
         let scan_session_d = ScanSessionState::default();
         let scan_session_s = match &self.props.scan_session_state {
             Some(sss) => sss,
@@ -60,6 +54,24 @@ impl Component for Scan {
             Some(ss) => ss,
             None => &streak_d,
         };
+
+        let suuid = &token::get_token_suuid().unwrap().to_string();
+
+        // we can do the unwrap, as the parent component, will not render
+        // this component when next_anode is None. This means the scan session
+        // has been completed
+        let next_anode = scan_session_s.next_anode.as_ref().unwrap();
+
+        // This is in production
+        let qrcode = qrcode::generate("Streaker Scan", &next_anode.url, &format!("scan:{}", suuid));
+
+        // NOTE: this is only for development, we override it here
+        #[cfg(debug_assertions)]
+        let qrcode = qrcode::generate(
+            "Streaker Scan",
+            "https://opesdentist.monetashi.io",
+            &format!("scantest:{}", suuid),
+        );
 
         html! {
         <div id="scan">

@@ -27,6 +27,18 @@ use route::{dashboard::DashBoard, index::Index, login::Login, scan::Scan, AppRou
 
 use crate::util::if_auth;
 
+#[cfg(debug_assertions)]
+fn dev_build_header() -> Html {
+    html! {
+        <div id="development-build">{ "DEVBUILD" }</div>
+    }
+}
+
+#[cfg(not(debug_assertions))]
+fn dev_build_header() -> Html {
+    html! {}
+}
+
 struct Root {
     current_route: Option<AppRoute>,
     router_agent: Box<dyn Bridge<RouteAgent>>,
@@ -233,6 +245,8 @@ impl Component for Root {
     fn view(&self) -> Html {
         html! {
             <>
+
+            { dev_build_header() }
                 <div id="container-background" class={if_auth("auth", "")} ></div>
                 <div class="container" id="index">
                 <div class="content">
@@ -321,5 +335,8 @@ impl Root {
 pub fn run_app() {
     // initialises logging, needs the wasm_logger crate
     wasm_logger::init(wasm_logger::Config::default());
+
+    #[cfg(debug_assertions)]
+    log::warn!("Running in Development Mode");
     App::<Root>::new().mount_to_body();
 }

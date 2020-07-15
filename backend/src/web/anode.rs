@@ -3,6 +3,8 @@
 // a new token and send it over the websocket
 use anyhow::Result;
 use chrono::{DateTime, Utc};
+#[cfg(debug_assertions)]
+use regex::Regex;
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgConnection, PgPool};
@@ -62,6 +64,21 @@ mod source_parser {
                 action: match *action {
                     "login" => SourceAction::Login,
                     "scan" => SourceAction::Scan,
+                    // In development mode we can do a scantest
+                    // to test without going throught the production environment
+                    // this gives us a source action in the format
+                    // of scantest@( anode_label ):( uuid )
+                    #[cfg(debug_assertions)]
+                    _ => {
+                        let scantest_r = regex::Regex::new(r#"scantest@(.*?)"#).unwrap();
+                        if scantest_r.is_match(action) {
+                            let anode_label = &scantest_r.captures(action).unwrap()[1];
+                            SourceAction::ScanTest(anode_label.into())
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                    #[cfg(not(debug_assertions))]
                     _ => unreachable!(),
                 },
             })
@@ -87,10 +104,14 @@ pub struct Source {
     pub suuid: Uuid,
 }
 
+type AccessNodeLabel = String;
+
 #[derive(Debug)]
 pub enum SourceAction {
     Login,
     Scan,
+    #[cfg(debug_assertions)]
+    ScanTest(AccessNodeLabel),
 }
 
 impl std::convert::Into<MemberState> for Member {
@@ -115,14 +136,22 @@ pub struct Attribution {
 // either from a scan request of a login request. We dispatch
 // to the appropiate handler.
 pub async fn attribution(
-    attr: Attribution,
+    mut attr: Attribution,
     ws_sessions: Sessions,
     pool: PgPool,
     time: DateTime<Utc>,
 ) -> Result<Json, warp::reject::Rejection> {
-    match attr.claim.source.action {
+    match &attr.claim.source.action {
         SourceAction::Login => attribution_login(attr, ws_sessions, pool, &time).await,
         SourceAction::Scan => attribution_scan(attr, ws_sessions, pool, &time).await,
+        #[cfg(debug_assertions)]
+        SourceAction::ScanTest(anode) => {
+            // here we overload the access_node_name witht the name
+            // of the scantest so we can test scanning on a development
+            // build.
+            attr.access_node_name = anode.into();
+            attribution_scan(attr, ws_sessions, pool, &time).await
+        }
     }
 }
 
