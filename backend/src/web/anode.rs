@@ -70,9 +70,12 @@ mod source_parser {
                     // of scantest@( anode_label ):( uuid )
                     #[cfg(debug_assertions)]
                     _ => {
-                        let scantest_r = regex::Regex::new(r#"scantest@(.*?)"#).unwrap();
+                        log::info!("action {}", action);
+                        let scantest_r = regex::Regex::new(r#"^scantest@(.*?)$"#).unwrap();
                         if scantest_r.is_match(action) {
                             let anode_label = &scantest_r.captures(action).unwrap()[1];
+                            log::info!("action {}", action);
+                            log::info!("anode_label {}", anode_label);
                             SourceAction::ScanTest(anode_label.into())
                         } else {
                             unreachable!()
@@ -160,7 +163,7 @@ struct AttributionError(String);
 impl warp::reject::Reject for AttributionError {}
 
 // helper to reject with a message in a map_err context
-pub fn reject<T>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
+pub fn reject<T: std::fmt::Debug>(msg: &str) -> Box<dyn FnOnce(T) -> warp::reject::Rejection> {
     let msg = msg.to_owned();
-    Box::new(move |_: T| warp::reject::custom(AttributionError(msg)))
+    Box::new(move |e: T| warp::reject::custom(AttributionError(format!("{}: {:?}", msg, e))))
 }

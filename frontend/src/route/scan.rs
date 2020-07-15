@@ -61,6 +61,7 @@ impl Component for Scan {
         // this component when next_anode is None. This means the scan session
         // has been completed
         let next_anode = scan_session_s.next_anode.as_ref().unwrap();
+        log::info!("{:?}", next_anode);
 
         // This is in production
         let qrcode = qrcode::generate("Streaker Scan", &next_anode.url, &format!("scan:{}", suuid));
@@ -70,7 +71,7 @@ impl Component for Scan {
         let qrcode = qrcode::generate(
             "Streaker Scan",
             "https://opesdentist.monetashi.io",
-            &format!("scantest:{}", suuid),
+            &format!("scantest@{}:{}", next_anode.label, suuid),
         );
 
         html! {
