@@ -3,8 +3,10 @@ use chrono::{DateTime, Utc};
 use sqlx::postgres::PgConnection;
 use uuid::Uuid;
 
+use streaker_common::ws;
 use streaker_common::ws::ScanSessionState;
 
+use crate::model::anode::AccessNode;
 use crate::model::scan::Scan;
 
 #[derive(Debug, PartialEq)]
@@ -88,8 +90,9 @@ impl ScanSession {
         .fetch_one(&mut *pool)
         .await?;
 
-        let next_anode = sqlx::query!(
-            r#"select label from anodes
+        let next_anode: Option<AccessNode> = sqlx::query_as!(
+            AccessNode,
+            r#"select * from anodes
                  where 
                    anodes.label NOT IN (select anode from scans where scansession = $1)"#,
             scan_session.uuid
@@ -102,7 +105,7 @@ impl ScanSession {
             uuid: scan_session.uuid,
             count: scans_performed.count.unwrap() as u16,
             total: total.count.unwrap() as u16,
-            next_anode: next_anode.map(|a| a.label),
+            next_anode: next_anode.map(|anode| anode.into()),
             begin: scan_session.begin,
         };
 

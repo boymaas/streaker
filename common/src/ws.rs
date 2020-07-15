@@ -22,11 +22,19 @@ pub struct MemberState {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AccessNode {
+    pub label: String,
+    pub url: String,
+    pub weight: f64,
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ScanSessionState {
     pub uuid: Uuid,
     pub count: u16,
     pub total: u16,
-    pub next_anode: Option<String>,
+    pub next_anode: Option<AccessNode>,
     pub begin: DateTime<Utc>,
 }
 

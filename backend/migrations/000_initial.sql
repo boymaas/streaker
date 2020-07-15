@@ -9,6 +9,8 @@ create table members (
 
 create table anodes (
 	label varchar(32) primary key,
+    url varchar(255) NOT NULL,
+    weight float NOT NULL DEFAULT 1.0,
 	description varchar(255)
 );
 

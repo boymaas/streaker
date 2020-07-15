@@ -104,7 +104,7 @@ async fn test_streaker_client() -> Result<()> {
         // the struct immutable doing the post_attribution_scan.
         let anode = anode.clone();
         client
-            .post_attribution_scan(&anode, "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
+            .post_attribution_scan(&anode.label, "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP")
             .await;
     }
 
