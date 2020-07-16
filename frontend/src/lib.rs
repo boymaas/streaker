@@ -270,7 +270,7 @@ impl Component for Root {
                                     html!{<ScanComplete member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />}
                                 }
                             },
-                            _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}
+                            _ => html!{<p class="no-impl">{ "Not Implemented Yet" }</p>}
 
                         }
                     } else {

@@ -30,6 +30,15 @@ pub struct Properties {
     pub target_time: DateTime<Utc>,
 }
 
+fn time_remaining(target_time: &DateTime<Utc>) -> TimeRemaining {
+    let duration = target_time.signed_duration_since(Utc::now());
+    TimeRemaining {
+        hours: duration.num_hours(),
+        minutes: duration.num_minutes() % 60,
+        seconds: duration.num_seconds() % 60,
+    }
+}
+
 impl Component for Clock {
     type Message = Msg;
     type Properties = Properties;
@@ -41,7 +50,7 @@ impl Component for Clock {
         let mut interval_service = IntervalService::new();
         let task = interval_service.spawn(duration, callback);
         Self {
-            countdown: TimeRemaining::default(),
+            countdown: time_remaining(&props.target_time),
             props: props,
             interval_service,
             task: Box::new(task),
@@ -51,13 +60,7 @@ impl Component for Clock {
         match msg {
             Msg::Updating => {
                 // lets calculate time remaining to target time
-                let target_time = &self.props.target_time;
-                let duration = target_time.signed_duration_since(Utc::now());
-                self.countdown = TimeRemaining {
-                    hours: duration.num_hours(),
-                    minutes: duration.num_minutes() % 60,
-                    seconds: duration.num_seconds() % 60,
-                };
+                self.countdown = time_remaining(&self.props.target_time);
             }
         }
         true
