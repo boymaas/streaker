@@ -1,3 +1,4 @@
+// we mixed scan and scan_complete
 #scan {
     .qrcode {
         width: 400px;
@@ -7,7 +8,7 @@
 
     .earned,.scansleft,.remaining {
         margin: 80px auto 20px auto;
-        
+
         .amount {
             span {
                 opacity: 0.6;
@@ -57,5 +58,64 @@
 
     }
 
+    // Completed
+    &.completed {
+        .earned {
+            .amount {
+                font-weight: 500;
+                font-size: 32px;
+            }
+            .subtext {
+                display: block;
+                font-size: 12px;
+                letter-spacing: 10px;
+            }
+        }
+        h2.completed-all {
+            margin: 50px auto;
+            text-align: center;
+            font-size: 32px;
 
+            font-weight: 800;
+            color: $green;
+            text-transform: uppercase;
+        }
+
+        .funny-image {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        .time-to-next-scan-session {
+            h3 {
+                display: block;
+                font-size: 12px;
+                color: #FFFFFF;
+                letter-spacing: 15px;
+                text-align: center;
+                overflow: hidden;
+                margin-top: 10px;
+                opacity: 0.8;
+                padding-right: 24px;
+            }
+
+            .clock {
+                margin-top: 20px;
+                text-align: center;
+
+                letter-spacing: 10px;
+
+                span.sep {
+                    margin: 0 4px;
+                }
+
+                font-size: 32px;
+
+                .hours {}
+                .minutes {}
+                .seconds {}
+            }
+
+        }
+    }
 }

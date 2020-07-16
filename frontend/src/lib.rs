@@ -23,7 +23,10 @@ use components::Header;
 use services::api;
 use services::token;
 
-use route::{dashboard::DashBoard, index::Index, login::Login, scan::Scan, AppRoute};
+use route::{
+    dashboard::DashBoard, index::Index, login::Login, scan::Scan, scan_complete::ScanComplete,
+    AppRoute,
+};
 
 use crate::util::if_auth;
 
@@ -264,7 +267,7 @@ impl Component for Root {
                                 } else {
                                     // TODO: display a nice page with completed message
                                     // and a timer displaying when you can scan again.
-                                    html!{<p class="no-impl">{ "Completed" }</p>}
+                                    html!{<ScanComplete member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />}
                                 }
                             },
                             _ => html!{<p class="no-impl">{ "Missing implementation" }</p>}

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -36,6 +36,12 @@ pub struct ScanSessionState {
     pub total: u16,
     pub next_anode: Option<AccessNode>,
     pub begin: DateTime<Utc>,
+}
+
+impl ScanSessionState {
+    pub fn end(&self) -> DateTime<Utc> {
+        self.begin + Duration::hours(24)
+    }
 }
 
 impl Default for ScanSessionState {

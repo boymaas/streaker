@@ -2,6 +2,7 @@ pub mod dashboard;
 pub mod index;
 pub mod login;
 pub mod scan;
+pub mod scan_complete;
 
 use yew_router::prelude::*;
 
