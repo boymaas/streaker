@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
     pretty_env_logger::init();
 
     let pool = PgPool::builder()
-        .max_size(5) // maximum number of connections in the pool
+        .max_size(10) // maximum number of connections in the pool
         .build(&dotenv::var("DATABASE_URL")?)
         .await?;
 

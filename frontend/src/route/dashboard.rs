@@ -75,7 +75,9 @@ impl Component for DashBoard {
                 if !scan_session_state.completed() {
                     html! {
                         <div class="start-scanning">
-                            <a class="button">{ "START" }</a>
+                            <RouterAnchor<AppRoute> route=AppRoute::Scans>
+                            <span>{ "START" }</span>
+                            </RouterAnchor<AppRoute>>
                             <Clock target_time=scan_session_state.end() />
                         </div>
                     }
