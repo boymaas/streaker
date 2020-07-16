@@ -6,9 +6,9 @@ use crate::rewards_program::RewardsProgram;
 
 #[derive(Debug)]
 pub struct StreakLogic {
-    streak_current: i32,
-    streak_bucket: i32,
-    last_scan: Option<DateTime<Utc>>,
+    pub streak_current: i32,
+    pub streak_bucket: i32,
+    pub last_scan: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq)]
@@ -48,7 +48,7 @@ impl StreakLogic {
         let days_since_last_scan = window.num_days() as i32;
 
         match days_since_last_scan {
-            0 => {
+            0 | 1 => {
                 let bucket = RewardsProgram::find_bucket(self.streak_bucket);
                 StreakState {
                     streak_current: self.streak_current,
@@ -59,17 +59,17 @@ impl StreakLogic {
                     mining_ratio: RewardsProgram::find_mining_ratio(bucket),
                 }
             }
-            1 => {
-                let bucket = RewardsProgram::find_bucket(self.streak_bucket + 1);
-                StreakState {
-                    streak_current: self.streak_current + 1,
-                    streak_bucket: self.streak_bucket + 1,
-                    streak_missed: 0,
-                    bucket: bucket,
-                    days_since_last_scan,
-                    mining_ratio: RewardsProgram::find_mining_ratio(bucket),
-                }
-            }
+            // 1 => {
+            //     let bucket = RewardsProgram::find_bucket(self.streak_bucket + 1);
+            //     StreakState {
+            //         streak_current: self.streak_current + 1,
+            //         streak_bucket: self.streak_bucket + 1,
+            //         streak_missed: 0,
+            //         bucket: bucket,
+            //         days_since_last_scan,
+            //         mining_ratio: RewardsProgram::find_mining_ratio(bucket),
+            //     }
+            // }
             _ => {
                 let streak_missed = days_since_last_scan - 1;
 

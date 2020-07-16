@@ -260,7 +260,7 @@ impl Component for Root {
                         match route {
                             AppRoute::Login => html!{<Login />},
                             AppRoute::Index => html!{<Index  />},
-                            AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state />},
+                            AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />},
                             AppRoute::Scans => {
                                 if self.scan_session_state.as_ref().map_or(false, |s| s.next_anode.is_some()) {
                                     html!{<Scan member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />}

@@ -3,6 +3,13 @@
         width: 600px;
         margin: 120px auto 80px auto;
 
+        &.balance {
+            margin: 60px auto;
+            .amount {
+                color: #fff;
+            }
+        }
+
         h2 {
             opacity: 0.77;
             font-size: 24px;
@@ -12,7 +19,7 @@
             text-transform: uppercase;
             margin-bottom: 30px;
         }
-        .gauge {
+        .gauge,.amount {
             font-size: 61.44px;
             font-weight: 900px;
             color: #BBFF00;
@@ -48,11 +55,38 @@
 
     .start-scanning {
         text-align: center;
-        margin-top: 80px;
+        margin: 80px auto 60px;
         a.button {
             @include big-green-button;
+            padding-top: 10px;
+            padding-bottom: 20px;
+        }
+
+        .clock {
+            color: #230660;
+            letter-spacing: 10px;
         }
     }
 
+
+    .completed-scanning {
+        text-align: center;
+        margin: 80px auto 40px;
+
+        p {
+            text-transform: uppercase;
+            font-size: 16px;
+            color: #FFFFFF;
+            letter-spacing: 5px;
+            text-align: center;
+        }
+
+        .clock {
+            margin-top: 40px;
+            color: #FFF;
+            font-size: 32px;
+            letter-spacing: 20px;
+        }
+    }
 
 }

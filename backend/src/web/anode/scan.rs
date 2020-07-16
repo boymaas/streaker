@@ -80,8 +80,8 @@ async fn attribution_scan_inner(
             member
                 .update_streak_info(
                     conn,
-                    streak_state.streak_current,
-                    streak_state.streak_bucket,
+                    streak_state.streak_current + 1,
+                    streak_state.streak_bucket + 1,
                 )
                 .await?;
         }
@@ -101,7 +101,7 @@ async fn attribution_scan_inner(
 
         // now we have updated our member state. If we haven't updated
         // it we just send the state as is.
-        send_response(ws_channel, &WsResponse::MemberState(member.into()));
+        send_response(ws_channel, &WsResponse::MemberState(member.clone().into()));
 
         // now generating a new scan session state based on the newly registered
         // scan. As now we need a new next-anode to scan.
@@ -112,6 +112,10 @@ async fn attribution_scan_inner(
         );
 
         // now send the new streak state over the websocket
+        //
+        streak_logic.streak_current = member.streak_current;
+        streak_logic.streak_bucket = member.streak_bucket;
+        let streak_state = streak_logic.evaluate(time);
         send_response(&ws_channel, &WsResponse::StreakState(streak_state));
 
         Ok(warp::reply::json(&json!({"success": true})))

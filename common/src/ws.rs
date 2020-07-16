@@ -12,7 +12,7 @@ type Token = String;
 pub enum WsRequest {}
 
 // Member state
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct MemberState {
     pub visitorid: String,
     pub streak_current: i32,
@@ -41,6 +41,10 @@ pub struct ScanSessionState {
 impl ScanSessionState {
     pub fn end(&self) -> DateTime<Utc> {
         self.begin + Duration::hours(24)
+    }
+
+    pub fn completed(&self) -> bool {
+        self.next_anode.is_none()
     }
 }
 

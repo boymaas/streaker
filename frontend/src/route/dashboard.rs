@@ -3,7 +3,9 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use streaker_common::rewards_program::RewardsProgram;
-use streaker_common::ws::{MemberState, StreakState};
+use streaker_common::ws::{MemberState, ScanSessionState, StreakState};
+
+use crate::components::Clock;
 
 pub struct DashBoard {
     props: Props,
@@ -14,6 +16,7 @@ pub struct DashBoard {
 pub struct Props {
     pub member_state: Option<MemberState>,
     pub streak_state: Option<StreakState>,
+    pub scan_session_state: Option<ScanSessionState>,
 }
 
 impl Component for DashBoard {
@@ -37,6 +40,8 @@ impl Component for DashBoard {
         // not we need to clone the option, to gget the value
         // out of the option. As the options is behind a shared reference.
         let streak_state = self.props.streak_state.clone().unwrap_or_default();
+        let member_state = self.props.member_state.clone().unwrap_or_default();
+        let scan_session_state = self.props.scan_session_state.clone().unwrap_or_default();
 
         // TODO: we have a max level, communicate this
         let nlevel_streaks = RewardsProgram::find_streak_bucket(streak_state.bucket + 1);
@@ -58,10 +63,35 @@ impl Component for DashBoard {
                 </div>
             </div>
 
+
+            {
+
+                if !scan_session_state.completed() {
+                    html! {
+                        <div class="start-scanning">
+                            <a class="button">{ "START" }</a>
+                            <Clock target_time=scan_session_state.end() />
+                        </div>
+                    }
+                } else {
+                    html! {
+                        <div class="completed-scanning">
+                            <p>{"Completed for today, come back in"}</p>
+                            <Clock target_time=scan_session_state.end() />
+                        </div>
+                    }
+                }
+
+            }
+
             <p>{ format!("NEXT LEVEL UP AT {} DAYS STREAK {:.04} UB/100", nlevel_streaks, nlevel_mining_ratio * 100.) }</p>
 
-            <div class="start-scanning">
-                <a class="button">{ "START" }</a>
+            <div class="gauges balance">
+                <div class="balance">
+                    <h2>{ "Balance" }</h2>
+                    <div class="amount">{ format!("{:.04}", member_state.balance) }</div>
+                    <div class="unit"><span>{"UBUCKS"}</span></div>
+                </div>
             </div>
 
             // <p>{ format!("{:#?}", self.props) }</p>
