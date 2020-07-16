@@ -170,7 +170,13 @@ impl Component for Root {
                 token::set_token(Some(jwt_token.token));
                 self.ws_connect(&token::get_token().unwrap());
             }
-            Msg::TokenFetchError => {}
+            Msg::TokenFetchError => {
+                // unable to fetch token, this is a real problem, we
+                // cannot connect to the websocket if we don't have a valid
+                // token. We have to rety getting a token, and inform the
+                // user of the problem.
+                // TODO: try to refetch
+            }
             Msg::WsReady(Ok(response)) => {
                 log::info!("WsReady {:?}", response);
                 match response {
@@ -181,9 +187,13 @@ impl Component for Root {
                         // so we change our token and reconnect
                         token::set_token(Some(token.clone()));
                         self.ws_connect(&token);
+
+                        // and now navigate to the unauthenticated
+                        // part of the application
+                        self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
                     }
                     WsResponse::DoubleConnection => {
-                        // somebody opened another tab with same app
+                        // TODO: somebody opened another tab with same app
                         // we have to show this is not possible
                         // and disconnect
                     }
