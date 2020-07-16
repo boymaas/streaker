@@ -229,7 +229,11 @@ impl Component for Root {
             Msg::WsAction(action) => {
                 log::info!("WsAction {:?}", action);
                 match action {
-                    WsAction::Lost => log::info!("Lost connection, trying to reconnect"),
+                    WsAction::Lost => {
+                        log::info!("Lost connection, trying to reconnect");
+                        // this will happen quickly, the client will manage the throttling
+                        self.ws_connect(&token::get_token().unwrap());
+                    }
                     ws_action => log::warn!("Unhandled WsAction {:?}", ws_action),
                 }
             }
