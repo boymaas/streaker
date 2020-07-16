@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 use crate::qrcode;
-use crate::token;
+use crate::services::token;
 use crate::util::RawHTML;
 
 pub struct Login {

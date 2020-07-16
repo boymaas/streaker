@@ -7,7 +7,7 @@ use streaker_common::ws::{MemberState, ScanSessionState, StreakState};
 
 use crate::qrcode;
 use crate::route::AppRoute;
-use crate::token;
+use crate::services::token;
 use crate::util::RawHTML;
 
 pub struct Scan {
