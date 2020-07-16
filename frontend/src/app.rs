@@ -200,7 +200,7 @@ impl Component for App {
                         // part of the application
                         self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
                     }
-                    WsResponse::DoubleConnection(token) => {
+                    WsResponse::DoubleConnection(_) => {
                         // TODO: somebody opened another tab with same app
                         // we have to show this is not possible
                         // and disconnect
@@ -209,7 +209,7 @@ impl Component for App {
 
                         // and now navigate to the unauthenticated
                         // part of the application
-                        self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
+                        // self.router_agent.send(ChangeRoute(AppRoute::Index.into()));
                     }
                     WsResponse::Attribution(authenticated_token) => {
                         log::info!("Received attribution request");
