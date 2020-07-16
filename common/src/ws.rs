@@ -74,6 +74,6 @@ pub enum WsResponse {
     MemberState(MemberState),
     ScanSessionState(ScanSessionState),
     StreakState(StreakState),
-    DoubleConnection,
+    DoubleConnection(Token),
     Error(String),
 }

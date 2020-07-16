@@ -47,6 +47,12 @@ impl Component for DashBoard {
         let nlevel_streaks = RewardsProgram::find_streak_bucket(streak_state.bucket + 1);
         let nlevel_mining_ratio = RewardsProgram::find_mining_ratio(streak_state.bucket + 1);
 
+        // streak_current is a bit tricky, as we return a streak_state
+        // which essentially predicts the state as if a member would have
+        // scanned. Or if he would have missed one or a couple of days.
+
+        // we need to compensate in the case
+
         html! {
         <div id="dashboard">
             <div class="gauges grid halves">

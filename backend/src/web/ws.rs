@@ -69,7 +69,8 @@ pub async fn handle(
     ) {
         // the interface will respond to this action
         // by closing the websocket connection and logging out.
-        send_response(&old_tx, &WsResponse::DoubleConnection);
+        let unauth_token = jwt::generate_token();
+        send_response(&old_tx, &WsResponse::DoubleConnection(unauth_token));
     }
 
     // log all the keys we have in our sessions
