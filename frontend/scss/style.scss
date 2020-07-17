@@ -35,6 +35,7 @@ body {
 
 .container {
     max-width: 940px;
+
     margin: 20px auto;
     position: relative;
 }
@@ -59,6 +60,11 @@ body {
 #header {
     position: relative;
     #logo {
+        @media screen and (max-width: 900px) {
+		width: 100px;
+		margin-left: auto;
+		margin-right: auto;
+        }
         a {display: inline-block; width: 100px}
         h1 {
             display: block;
@@ -67,10 +73,14 @@ body {
             background: url("/img/logo.svg") no-repeat;
             span { display: none; }
         }
+        
     }
 
 
     .conversion-rate {
+        @media screen and (max-width: 900px) {
+		display: none;
+        }
         &>span:nth-child(1) {
             display: block;
             font-size: 24px;
@@ -98,6 +108,11 @@ body {
         right: -110px;
         top: 120px;
         background: url(/img/mobile-with-opes-screenshot.png) no-repeat;
+
+
+        @media screen and (max-width: 1024px) {
+            display: none;
+        }
     }
 }
 
@@ -114,6 +129,11 @@ body {
         color: #FFFFFF;
         letter-spacing: 6.65px;
         font-weight: 300;
+
+
+        @media screen and (max-width: 900px) {
+            font-size: 24px;
+        }
     }
 
     p {
