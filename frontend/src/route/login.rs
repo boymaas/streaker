@@ -1,5 +1,6 @@
 use yew::prelude::*;
 
+use crate::browser_detect;
 use crate::qrcode;
 use crate::services::token;
 use crate::util::RawHTML;
@@ -30,7 +31,10 @@ impl Component for Login {
     fn view(&self) -> Html {
         let suuid = &token::get_token_suuid().unwrap().to_string();
         let anode_url = format!("https://{}.monetashi.io", "opesdentist");
-        let result = qrcode::generate("Streaker Login", &anode_url, &format!("login:{}", suuid));
+        let checkin_url =
+            qrcode::generate_url("Streaker Login", &anode_url, &format!("login:{}", suuid));
+
+        log::info!("IS MOBILE {}", crate::browser_detect::is_mobile());
 
         html! {
 
@@ -39,9 +43,23 @@ impl Component for Login {
 
                 <p>{ "" }</p>
 
-                <div class="qrcode">
-                    <RawHTML inner_html={result} />
-                </div>
+                {
+                    if browser_detect::is_mobile() {
+                        html! {
+                            <div class="checkin-button">
+                                <a href={ checkin_url }>{ "LOGIN" }</a>
+                            </div>
+                        }
+                    }
+                    else {
+                        html! {
+                            <div class="qrcode">
+                              <RawHTML inner_html={qrcode::generate(&checkin_url)} />
+                            </div>
+                        }
+                    }
+                }
+
                 <div class="download-app-buttons grid halves">
                     <div class="app-store col">
                         <a href="https://apps.apple.com/us/app/opes-id/id1462956865" target="_install_app">

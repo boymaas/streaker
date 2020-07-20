@@ -27,6 +27,9 @@ jsonwebtoken = "7.1.2"
 streaker-common = {version = "0.1.0", path="../common"}
 uuid = {version="0.8.1", features=["serde", "v4", "wasm-bindgen"]}
 chrono = { version = "0.4.13", features = ["serde", "wasmbind"] }
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+load-dotenv = "0.1.1"
 
 
 [dependencies.web-sys]

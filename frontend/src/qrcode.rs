@@ -4,7 +4,11 @@ use url::Url;
 type SvgCode = String;
 
 // &format!("https://{}.monetashi.io", anode)
-pub fn generate(name: &str, url: &str, source: &str) -> SvgCode {
+pub fn generate(url: &str) -> SvgCode {
+    qrcode_generator::to_svg_to_string(url, QrCodeEcc::Low, 400, None).unwrap()
+}
+
+pub fn generate_url(name: &str, url: &str, source: &str) -> String {
     let anode_url = Url::parse(url).unwrap();
 
     let url = Url::parse_with_params(
@@ -17,5 +21,5 @@ pub fn generate(name: &str, url: &str, source: &str) -> SvgCode {
     )
     .unwrap();
 
-    qrcode_generator::to_svg_to_string(url.to_string(), QrCodeEcc::Low, 400, None).unwrap()
+    url.to_string()
 }

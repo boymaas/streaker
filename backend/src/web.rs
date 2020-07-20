@@ -94,6 +94,7 @@ impl StreakerApp {
             .allow_origin(cors_origin)
             .allow_header("Content-Type")
             .allow_method("GET")
+            .allow_method("OPTION")
             .allow_method("POST");
 
         self.route_ws(timefn)

@@ -18,6 +18,8 @@ use crate::components::Header;
 use crate::services::api;
 use crate::services::token;
 
+use crate::config;
+
 use crate::route::{
     dashboard::DashBoard, index::Index, login::Login, scan::Scan, scan_complete::ScanComplete,
     AppRoute,
@@ -358,7 +360,7 @@ impl App {
         let task = self
             .ws_service
             .connect(
-                &format!("ws://localhost:8080/ws/{}", token),
+                &format!("{}/ws/{}", config::WSS_ENDPOINT, token),
                 callback,
                 notification,
             )

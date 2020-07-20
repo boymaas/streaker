@@ -1,9 +1,12 @@
 #![recursion_limit = "512"]
+
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 mod app;
+mod browser_detect;
 mod components;
+pub mod config;
 mod qrcode;
 mod route;
 mod services;

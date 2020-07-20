@@ -12,6 +12,8 @@ use url::Url;
 
 use thiserror::Error as ThisError;
 
+use crate::config;
+
 /// Define all possible errors
 #[derive(ThisError, Clone, Debug)]
 pub enum ApiError {
@@ -42,7 +44,7 @@ pub enum ApiError {
 
 lazy_static! {
     pub static ref END_POINT: Url =
-        Url::parse("http://localhost:8080").expect("need a valid API endpoint");
+        Url::parse(config::API_ENDPOINT).expect("need a valid API endpoint");
 }
 
 // aggressove function to build api url

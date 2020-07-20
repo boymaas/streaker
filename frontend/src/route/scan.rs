@@ -64,11 +64,12 @@ impl Component for Scan {
         log::info!("{:?}", next_anode);
 
         // This is in production
-        let qrcode = qrcode::generate("Streaker Scan", &next_anode.url, &format!("scan:{}", suuid));
+        let checkin_url =
+            qrcode::generate_url("Streaker Scan", &next_anode.url, &format!("scan:{}", suuid));
 
         // NOTE: this is only for development, we override it here
         #[cfg(debug_assertions)]
-        let qrcode = qrcode::generate(
+        let checkin_url = qrcode::generate_url(
             "Streaker Scan",
             "https://opesdentist.monetashi.io",
             &format!("scantest@{}:{}", next_anode.label, suuid),
@@ -84,7 +85,7 @@ impl Component for Scan {
               <span class="subtext">{ "EARNED TODAY" }</span>
             </div>
             <div class="qrcode">
-                <RawHTML inner_html={qrcode} />
+                <RawHTML inner_html={qrcode::generate(&checkin_url)} />
             </div>
 
             <div class="stats grid halves">
