@@ -20,3 +20,12 @@
         border: solid 2px white;
     }
 }
+
+
+.checkin-button {
+    @include big-green-button();
+    display: block;
+    padding: 10px 40px;
+    margin: 0 auto;
+    width: 240px;
+}

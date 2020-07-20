@@ -39,16 +39,21 @@ impl Component for Login {
         html! {
 
             <div class="content" id="login">
-                <h2>{ "Scan to start earning daily rewards" }</h2>
+
+                <h2>
+                { if browser_detect::is_mobile() {
+                    "Login to start earning daily rewards"
+                } else {
+                    "Scan to start earning daily rewards"
+                } }
+                </h2>
 
                 <p>{ "" }</p>
 
                 {
                     if browser_detect::is_mobile() {
                         html! {
-                            <div class="checkin-button">
-                                <a href={ checkin_url }>{ "LOGIN" }</a>
-                            </div>
+                            <a class="checkin-button" href={ checkin_url }>{ "LOGIN" }</a>
                         }
                     }
                     else {

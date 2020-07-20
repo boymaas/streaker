@@ -5,6 +5,7 @@ use yew_router::prelude::*;
 
 use streaker_common::ws::{MemberState, ScanSessionState, StreakState};
 
+use crate::browser_detect;
 use crate::qrcode;
 use crate::route::AppRoute;
 use crate::services::token;
@@ -64,13 +65,14 @@ impl Component for Scan {
         log::info!("{:?}", next_anode);
 
         // This is in production
+        let checkin_name = format!("Streaker%20Scan%20{}", &next_anode.label);
         let checkin_url =
-            qrcode::generate_url("Streaker Scan", &next_anode.url, &format!("scan:{}", suuid));
+            qrcode::generate_url(&checkin_name, &next_anode.url, &format!("scan:{}", suuid));
 
         // NOTE: this is only for development, we override it here
         #[cfg(debug_assertions)]
         let checkin_url = qrcode::generate_url(
-            "Streaker Scan",
+            &checkin_name,
             "https://opesdentist.monetashi.io",
             &format!("scantest@{}:{}", next_anode.label, suuid),
         );
@@ -84,9 +86,26 @@ impl Component for Scan {
               </span>
               <span class="subtext">{ "EARNED TODAY" }</span>
             </div>
-            <div class="qrcode">
-                <RawHTML inner_html={qrcode::generate(&checkin_url)} />
-            </div>
+
+            {
+                if browser_detect::is_mobile() {
+                    html! {
+                        <a class="checkin-button" href={ checkin_url }>
+                            <span class="action">{ "SCAN" }</span>
+                            <span class="anode">{ &next_anode.label }</span>
+                        </a>
+                    }
+                }
+                else {
+                    html! {
+                        <div class="qrcode">
+                            <RawHTML inner_html={qrcode::generate(&checkin_url)} />
+                        </div>
+                    }
+                }
+            }
+
+
 
             <div class="stats grid halves">
                 <div class="col scansleft">

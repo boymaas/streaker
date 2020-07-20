@@ -25,6 +25,9 @@
     ul.steps {
         width: 180px; 
         margin: 82px auto;
+        @media screen and (max-width: 900px) {
+            margin: 50px auto;
+        }
         li {
             font-weight: 300;
             font-size: 19.2px;
