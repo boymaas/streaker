@@ -282,7 +282,7 @@ impl Component for App {
             { dev_build_header() }
                 <div id="container-background" class={if_auth("auth", "")} ></div>
                 <div class="container" id="index">
-                <div class="content">
+                <div class={if_auth("auth content", "")}>
 
                 <Header current_route=&self.current_route />
 

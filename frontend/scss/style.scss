@@ -36,8 +36,10 @@ body {
 .container {
     max-width: 940px;
 
-    margin: 20px auto;
+    margin: 0px auto;
     position: relative;
+    // need this to position correctly???
+    border: 1px solid rgba(1,0,0,0);
 }
 
 #container-background { display:none; }
@@ -58,8 +60,9 @@ body {
 }
 
 #header {
-    position: relative;
+    // position: relative;
     #logo {
+	// center when loading non-auth pages
         @media screen and (max-width: 900px) {
 		width: 100px;
 		margin-left: auto;
@@ -74,6 +77,16 @@ body {
             span { display: none; }
         }
         
+    }
+
+    // let logo dissapear when we are logged
+    // in
+    @media screen and (max-width: 900px) {
+	&.auth {
+	    #logo {
+	       display: none;
+	    }
+        }
     }
 
 
@@ -110,6 +123,7 @@ body {
         background: url(/img/mobile-with-opes-screenshot.png) no-repeat;
 
 
+	// only show on large widths
         @media screen and (max-width: 1024px) {
             display: none;
         }
