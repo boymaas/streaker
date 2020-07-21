@@ -12,6 +12,7 @@ jobs:
         environment:
           POSTGRES_USER: streaker
           POSTGRES_DB: streaker
+          POSTGRES_PASSWORD: streaker
     steps:
       - checkout
       - run:
@@ -26,7 +27,7 @@ jobs:
       - run: 
           name: Migrate database
           environment:
-            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
+            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password=streaker"
           command: cd backend && cargo run --bin migrate
       - run:
           name: Build all targets
