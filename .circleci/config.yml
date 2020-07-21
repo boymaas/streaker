@@ -28,6 +28,9 @@ jobs:
           name: Version information
           command: rustc --version; cargo --version; rustup --version
       - run:
+          name: Environment information
+          command: env
+      - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
       - restore_cache:
