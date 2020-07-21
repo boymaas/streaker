@@ -28,7 +28,7 @@ jobs:
           name: Migrate database
           environment:
             DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
-          command: cd backend && cargo run --bin migrate
+          command: cd migrate && cargo run 
       - run:
           name: Build all targets
           environment:

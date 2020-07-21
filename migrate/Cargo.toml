@@ -1,0 +1,15 @@
+[package]
+name = "streaker-migrate"
+version = "0.1.0"
+authors = ["Boy Maas <boy.maas@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "0.2", features = ["fs", "stream", "sync", "time", "macros"] }
+sqlx = {version = "0.3.5", default-features = false, features=["runtime-tokio", "macros", "postgres", "uuid", "chrono", "json"]}
+sqlx-pg-migrate = "1.0.4"
+include_dir = "0.6.0"
+anyhow = "1.0.31"
+dotenv = "0.15.0"
