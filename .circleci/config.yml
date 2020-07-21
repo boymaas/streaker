@@ -62,7 +62,7 @@ jobs:
           paths:
             - frontend/static
 
-  deploy_production:
+  deploy_frontend:
     executor: rust-build
     steps:
       - attach_workspace:
@@ -82,7 +82,7 @@ jobs:
       - attach_workspace:
           at: /source
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: |
          cd backend 
          docker build -t 193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest .
@@ -101,7 +101,7 @@ workflows:
           filters:
             branches:
               only: production
-      - deploy_production:
+      - deploy_frontend:
           requires:
             - build
           filters:
