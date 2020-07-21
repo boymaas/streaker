@@ -44,6 +44,14 @@ RUN apt-get update && \
     apt-get install -y musl musl-dev musl-tools && \
     rm -rf /var/lib/apt/lists/*
 
+
+# Install docker cli
+ENV DOCKERVERSION=19.03.9
+RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
+  && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 \
+                 -C /usr/local/bin docker/docker \
+  && rm docker-${DOCKERVERSION}.tgz
+
 # We need this to build a static binary
 RUN rustup target add x86_64-unknown-linux-musl
 
