@@ -13,7 +13,11 @@ executors:
           POSTGRES_USER: streaker
           POSTGRES_DB: streaker
           POSTGRES_PASSWORD: streaker
-    # environment:
+    environment:
+      # specify cargo target dir to make sure
+      # all deps are compiled into that dir and the whole
+      # workspace can use it
+      CARGO_TARGET_DIR: "/source/cargo_target"
 
 jobs:
   build:
@@ -42,7 +46,7 @@ jobs:
       - save_cache:
           paths:
             - /usr/local/cargo/registry
-            - target
+            - /source/cargo_target
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
 
   deploy_production:
