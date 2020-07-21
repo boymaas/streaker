@@ -27,4 +27,6 @@ ENV USER root
 RUN npm install -g aerobatic-cli
 WORKDIR /source
 
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
 CMD ["bash"]
