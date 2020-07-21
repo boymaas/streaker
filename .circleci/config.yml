@@ -27,12 +27,12 @@ jobs:
       - run: 
           name: Migrate database
           environment:
-            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password=streaker"
+            DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
           command: cd backend && cargo run --bin migrate
       - run:
           name: Build all targets
           environment:
-            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
+            DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
           command: cargo build --release
       - save_cache:
           paths:
@@ -42,5 +42,5 @@ jobs:
       - run:
           name: Run all tests
           environment:
-            TESTBASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
+            TESTBASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
           command: cargo test --release
