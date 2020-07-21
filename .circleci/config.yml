@@ -4,6 +4,14 @@ jobs:
   build:
     docker:
       - image: rust:latest
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+      - image: circleci/postgres:12
+        environment:
+          POSTGRES_USER: streaker
+          POSTGRES_DB: streaker
     steps:
       - checkout
       - run:
@@ -15,8 +23,15 @@ jobs:
       - restore_cache:
           keys:
             - v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+      - run: 
+          name: Migrate database
+          environment:
+            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
+          command: cd backend && cargo run --bin migrate
       - run:
           name: Build all targets
+          environment:
+            DATABASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
           command: cargo build --release
       - save_cache:
           paths:
@@ -25,4 +40,6 @@ jobs:
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
           name: Run all tests
+          environment:
+            TESTBASE_URL: "jdbc:postgresql://localhost/streaker?user=streaker&password="
           command: cargo test --release
