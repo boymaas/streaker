@@ -1,9 +1,9 @@
-version: 2
-
-jobs:
-  build:
+version: 2.1
+executors:
+  rust-build:
+    working_directory: /source # directory where steps will run
     docker:
-      - image: rust:latest
+      - image: opesunite/rust-build:latest
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -13,6 +13,11 @@ jobs:
           POSTGRES_USER: streaker
           POSTGRES_DB: streaker
           POSTGRES_PASSWORD: streaker
+    # environment:
+
+jobs:
+  build:
+    executor: rust-build
     steps:
       - checkout
       - run:
@@ -39,8 +44,22 @@ jobs:
             - /usr/local/cargo/registry
             - target
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-      - run:
-          name: Run all tests
-          environment:
-            TESTBASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
-          command: cargo test --release
+
+  deploy_production:
+    executor: rust-build
+    steps:
+      - attach_workspace:
+          at: /source
+      - run: cd frontend/static/ && aero deploy 
+
+workflows:
+  version: 2
+  aero_deploy:
+    jobs:
+      - build
+      - deploy_production:
+          requires:
+            - build
+          filters:
+            branches:
+              only: production
