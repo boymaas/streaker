@@ -64,6 +64,7 @@ jobs:
             - backend
             - common
             - migrate
+            - target
 
   deploy_frontend:
     executor: rust-build
@@ -84,6 +85,13 @@ jobs:
     steps:
       - attach_workspace:
           at: /source
+      # Since we are doing a new build here, and sqlx needs the database
+      # configured to infer the compile time stuff
+      - run: 
+          name: Migrate database
+          environment:
+            DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
+          command: cd migrate && cargo run 
       - setup_remote_docker:
           docker_layer_caching: false
       # build a statically linked binary, create
@@ -105,8 +113,6 @@ jobs:
          docker build -t 193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest .
          docker push 193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest
 
-  
-
 workflows:
   version: 2
   aero_deploy:
@@ -118,9 +124,9 @@ workflows:
           filters:
             branches:
               only: production
-      - deploy_frontend:
-          requires:
-            - build
-          filters:
-            branches:
-              only: production
+      # - deploy_frontend:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only: production

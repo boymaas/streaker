@@ -39,6 +39,11 @@ RUN apt-get update && \
     apt-get install -y kubectl && \
     rm -rf /var/lib/apt/lists/*
 
+# Install musl-gcc
+RUN apt-get update && \
+    apt-get install -y musl musl-dev musl-tools && \
+    rm -rf /var/lib/apt/lists/*
+
 # We need this to build a static binary
 RUN rustup target add x86_64-unknown-linux-musl
 
