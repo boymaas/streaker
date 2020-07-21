@@ -1,0 +1,15 @@
+id: 36288c7f-c6b0-48a0-acc0-f62048cd3618
+deploy:
+  ignore: []
+  directory: .
+plugins:
+  - name: password-protect
+    stages:
+      - staging
+      - production
+    options:
+      password: showme
+  - name: webpage
+    options:
+      canonicalRedirects: true
+      pushState: true
