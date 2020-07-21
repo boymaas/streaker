@@ -46,11 +46,21 @@ jobs:
           environment:
             DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
           command: cargo build --release
+      - run:
+          name: Build WASM frontend
+          environment:
+            DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
+          command: cd frontend && wasm-pack build --target web --out-name wasm --out-dir ./static --release
       - save_cache:
           paths:
             - /usr/local/cargo/registry
             - /source/target
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/static
 
   deploy_production:
     executor: rust-build
