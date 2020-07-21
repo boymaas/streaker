@@ -17,7 +17,7 @@ executors:
       # specify cargo target dir to make sure
       # all deps are compiled into that dir and the whole
       # workspace can use it
-      CARGO_TARGET_DIR: "/source/cargo_target"
+      CARGO_TARGET_DIR: "/source/target"
 
 jobs:
   build:
@@ -49,7 +49,7 @@ jobs:
       - save_cache:
           paths:
             - /usr/local/cargo/registry
-            - /source/cargo_target
+            - /source/target
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
 
   deploy_production:
