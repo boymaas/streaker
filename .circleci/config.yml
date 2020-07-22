@@ -137,9 +137,9 @@ workflows:
           filters:
             branches:
               only: production
-      # - deploy_frontend:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         only: production
+      - deploy_frontend:
+          requires:
+            - build
+          filters:
+            branches:
+              only: production
