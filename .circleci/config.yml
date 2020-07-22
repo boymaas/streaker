@@ -111,8 +111,17 @@ jobs:
          CMD ["./streaker"]
          EOS
 
+         # Login to the aws account, authentication via secret env vars
+         aws ecr get-login-password | docker login --username AWS --password-stdin 193722696917.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
          docker build -t 193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest .
          docker push 193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest
+
+         # Login to kubectl, to get access to our cluster
+         aws eks update-kubeconfig --name infrastructure-node-cluster
+
+         # Just list the pods for now
+         kubectl get pods
 
 workflows:
   version: 2

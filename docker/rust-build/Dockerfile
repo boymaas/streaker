@@ -55,4 +55,10 @@ RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${
 # We need this to build a static binary
 RUN rustup target add x86_64-unknown-linux-musl
 
+# We need the AWS CLI to login to docket and kubectl
+#
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN aws/install
+
 CMD ["bash"]
