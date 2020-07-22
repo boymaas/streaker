@@ -100,8 +100,6 @@ jobs:
       - run: |
          cd backend 
 
-         find build
-
          # We use the artifact of the previous
          # build step which should be in 
          #    `build/x86_64-unknown-linux-musl/streaker`
@@ -110,7 +108,8 @@ jobs:
          # this escape \<< is circeci specific
          cat \<<EOS >Dockerfile
          FROM scratch
-         COPY build/x86_64-unknown-linux-musl/streaker .
+         
+         COPY build/x86_64-unknown-linux-musl/release/streaker .
          USER 1000
          CMD ["./streaker"]
          EOS
