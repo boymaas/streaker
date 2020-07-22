@@ -100,6 +100,8 @@ jobs:
       - run: |
          cd backend 
 
+         find build
+
          # We use the artifact of the previous
          # build step which should be in 
          #    `build/x86_64-unknown-linux-musl/streaker`
