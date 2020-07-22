@@ -49,7 +49,7 @@ pub async fn ensure(pool: &PgPool) {
     // since this is on startup, we want ot fail hard
     let mut conn = pool.acquire().await.expect("problem acquiring connection");
     for (anode, url) in ANODES.iter() {
-        println!("{:?}", (anode, url));
+        log::debug!("{:?}", (anode, url));
         if let Err(e) = AccessNode::create(&mut conn, anode, url, 1.0).await {
             if let Some("23505") = get_db_error_code(&e) {
                 // don't continue

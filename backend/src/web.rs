@@ -117,5 +117,9 @@ pub async fn start(pool: PgPool) {
     })
     .expect("Error setting Ctrl-C handler");
 
-    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
+    let port = dotenv::var("PORT")
+        .expect("PORT must be defined")
+        .parse()
+        .expect("could not parse PORT");
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 }

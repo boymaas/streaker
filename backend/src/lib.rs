@@ -12,7 +12,8 @@ pub mod web;
 // TODO: why does this not take on cargo test ..
 // #[cfg(test)]
 pub use streaker_migrate as migrate;
-//#[cfg(test)]
-pub mod testdb;
-//#[cfg(test)]
+
+#[cfg(test)]
 pub mod streaker_client;
+#[cfg(test)]
+pub mod testdb;
