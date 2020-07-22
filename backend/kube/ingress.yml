@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: streaker
+  labels:
+    app.kubernetes.io/name: streaker
+  annotations:
+    certmanager.k8s.io/cluster-issuer: streaker
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+        - "api.opescash.com"
+      secretName: streaker-tls
+  rules:
+    - host: "api.opescash.com"
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: streaker
+              servicePort: 8080
