@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/name: streaker
   annotations:
     certmanager.k8s.io/cluster-issuer: streaker
+    cert-manager.io/cluster-issuer: streaker
     kubernetes.io/ingress.class: nginx
 spec:
   tls:
