@@ -20,7 +20,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DATABASE_URL
-              value: "{STREAKER_DATABASE_URL}"
+              value: "${STREAKER_DATABASE_URL}"
             - name: STREAKER_CORS_ORIGIN
               value: "https://opescash.com"
             - name: PORT

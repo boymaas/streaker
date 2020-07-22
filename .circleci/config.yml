@@ -123,8 +123,8 @@ jobs:
          # Login to kubectl, to get access to our cluster
          aws eks update-kubeconfig --name infrastructure-node-cluster
 
-         # Just list the pods for now
-         kubectl get pods
+         # now apply the deployment
+         envsubst < kube/deployment.yml | kubectl apply -f -
 
 workflows:
   version: 2
