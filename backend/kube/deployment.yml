@@ -16,13 +16,13 @@ spec:
     spec:
       containers:
         - name: streaker
-          image: "193722696917.dkr.ecr.us-east-1.amazonaws.com/opesunite/streaker:latest"
+          image: "${IMAGE}"
           imagePullPolicy: Always
           env:
             - name: DATABASE_URL
               value: "${STREAKER_DATABASE_URL}"
             - name: STREAKER_CORS_ORIGIN
-              value: "https://opescash.com"
+              value: "${CORS_ORIGIN}"
             - name: PORT
               value: "8080"
             - name: RUST_LOG
