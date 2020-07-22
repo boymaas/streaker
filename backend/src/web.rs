@@ -98,6 +98,7 @@ impl StreakerApp {
             .allow_method("POST");
 
         self.route_ws(timefn)
+            .or(warp::path("healthy").and(warp::any().map(|| "Ok")))
             .or(self.route_api_anode_attribution(timefn))
             .or(self.route_api_token_fetch(timefn))
             .with(cors)
