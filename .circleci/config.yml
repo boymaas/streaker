@@ -42,15 +42,19 @@ jobs:
             DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
           command: cd migrate && cargo run 
       - run:
-          name: Build all targets
+          name: Build backend
           environment:
             DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
-          command: cargo build --release
+          command: |
+            cd backend
+            cargo build --target x86_64-unknown-linux-musl --release --target-dir build
       - run:
           name: Build WASM frontend
           environment:
             DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
-          command: cd frontend && wasm-pack build --target web --out-name wasm --out-dir ./static --release
+          command: |
+            cd frontend 
+            wasm-pack build --target web --out-name wasm --out-dir ./static --release
       - save_cache:
           paths:
             - /usr/local/cargo/registry
@@ -85,28 +89,26 @@ jobs:
     steps:
       - attach_workspace:
           at: /source
-      # Since we are doing a new build here, and sqlx needs the database
-      # configured to infer the compile time stuff
-      - run: 
-          name: Migrate database
-          environment:
-            DATABASE_URL: "postgres://streaker:streaker@localhost:5432/streaker"
-          command: cd migrate && cargo run 
       - setup_remote_docker:
           docker_layer_caching: false
-      # build a statically linked binary, create
-      # a dockerfile on the fly and push it to the
-      # aws repository
+      # use the statically build binary from
+      # the build steps before to build a Docker 
+      # container and push this to the AWS repo.
+      #
+      # Update the kubectl stuff and push it
+      # to the cluster.
       - run: |
          cd backend 
-         cargo install --target x86_64-unknown-linux-musl --path .
 
-         cp /root/.cargo/bin/streaker .
+         # We use the artifact of the previous
+         # build step which should be in 
+         #    `build/x86_64-unknown-linux-musl/streaker`
+         # in the backend dir.
          
          # this escape \<< is circeci specific
          cat \<<EOS >Dockerfile
          FROM scratch
-         COPY streaker .
+         COPY build/x86_64-unknown-linux-musl/streaker .
          USER 1000
          CMD ["./streaker"]
          EOS

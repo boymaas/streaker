@@ -25,7 +25,6 @@ RUN curl https://sh.rustup.rs -sSf | \
 ENV PATH=/root/.cargo/bin:$PATH
 ENV USER root
 RUN npm install -g aerobatic-cli
-WORKDIR /source
 
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
@@ -57,8 +56,12 @@ RUN rustup target add x86_64-unknown-linux-musl
 
 # We need the AWS CLI to login to docket and kubectl
 #
+WORKDIR /install
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN unzip awscliv2.zip
 RUN aws/install
+
+
+WORKDIR /source
 
 CMD ["bash"]

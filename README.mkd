@@ -1,0 +1,26 @@
+# OPES Streaker
+
+Application designed to allow a community of scanners to capitalise on
+scanning qr codes.
+
+## Technical
+
+This project is full stack rust, based on `warp` on the backend, and `yew`
+on the frontend.
+
+## Overview
+
+Single Page App, code located in `frontend` directory. 
+
+Backend, code located in `backend`
+
+## Deployment 
+
+CircleCI, for continious integration / continious deployment. See for
+details the `.circleci/config.yml`. Here you can find instructions on
+how to build and deploy the project.
+
+Frontend is deployed to aerobatic.com. A party specialised in single
+page app hosting.
+
+
