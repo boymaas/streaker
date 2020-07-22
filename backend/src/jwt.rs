@@ -20,6 +20,9 @@ pub struct Claims {
     pub concept: String,
 }
 
+// NOTE: when STREAKER_SECRET is not set, we get a strance poisoned Once
+//       error due to a panic. Which does not display the expect. Hard to
+//       find. Maybe do a hard check for the var on startup.
 lazy_static! {
     static ref SECRET: String =
         dotenv::var("STREAKER_SECRET").expect("STREAKER_SECRET needs to be set");
