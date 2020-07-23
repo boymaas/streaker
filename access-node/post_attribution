@@ -3,15 +3,15 @@
 access_node_name=$1
 end_point=$2
 
-cat -u - | grep --line-buffered 'ATTRIBUTION RECV' | \
+cat -u - | stdbuf -i0 -o0 tee /dev/stderr | grep --line-buffered 'ATTRIBUTION RECV' | \
 	jq --unbuffered '.message' | \
-	perl -p -e '$|=1;s/.*?ATTRIBUTION RECV {(.*)}\\n.*?/"{\1}/' | \
+	perl -p -e '$|=1;s/.*?ATTRIBUTION RECV \{(.*)}\\n.*?/"{\1}/' | \
 	jq --unbuffered fromjson | \
 	jq --unbuffered -c .claims |
 while read -r claim; do
    attribution="{\"access_node_name\": \"$access_node_name\", \"claim\": $claim }"
    echo  "POST attribution $attribution => $end_point"
-   curl --header "Content-Type: application/json" \
+   echo curl --header "Content-Type: application/json" \
 	--request POST \
 	--data "$attribution" \
 	$end_point
