@@ -3,7 +3,7 @@ use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
-use yew::format::{Json, Nothing};
+use yew::format::{Json, Nothing, Text};
 use yew::prelude::*;
 use yew::services::fetch::FetchTask;
 use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
@@ -64,6 +64,8 @@ pub enum Msg {
     WsReady(Result<WsResponse, Error>),
     WsAction(WsAction),
     ClearFlash,
+
+    SkipCurrentScan,
 }
 
 impl Component for App {
@@ -169,6 +171,21 @@ impl Component for App {
         match msg {
             Msg::ClearFlash => {
                 self.flash_message = None;
+            }
+            Msg::SkipCurrentScan => {
+                // send a request over our websocket that we want
+                // to skip this scan. We also want an updated state
+                // over the websocket
+                if let Some(next_anode) = self
+                    .scan_session_state
+                    .as_ref()
+                    .and_then(|s| s.next_anode.as_ref())
+                {
+                    let anode = next_anode.label.clone();
+                    self.ws_send(Json(&WsRequest::SkipCurrentScan(anode)));
+                } else {
+                    self.flash_message("Not possible to skip scan");
+                }
             }
             Msg::Route(route) => self.current_route = AppRoute::switch(route),
             Msg::Token(jwt_token) => {
@@ -276,6 +293,10 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
+        // get this callback in the scan route, if the user clicks the
+        // skip button.
+        let on_skip_scan = self.link.callback(|_| Msg::SkipCurrentScan);
+
         html! {
             <>
 
@@ -295,7 +316,11 @@ impl Component for App {
                             AppRoute::DashBoard => html!{<DashBoard member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />},
                             AppRoute::Scans => {
                                 if self.scan_session_state.as_ref().map_or(false, |s| s.next_anode.is_some()) {
-                                    html!{<Scan member_state=&self.member_state streak_state=&self.streak_state scan_session_state=&self.scan_session_state />}
+                                    html!{<Scan member_state=&self.member_state
+                                                streak_state=&self.streak_state
+                                                scan_session_state=&self.scan_session_state
+                                                on_skip_scan=on_skip_scan
+                                                />}
                                 } else {
                                     // TODO: display a nice page with completed message
                                     // and a timer displaying when you can scan again.
@@ -366,5 +391,12 @@ impl App {
             )
             .unwrap();
         self.ws = Some(task);
+    }
+    fn ws_send<T: Into<Text>>(&mut self, data: T) {
+        if let Some(ws) = &mut self.ws {
+            ws.send(data);
+        } else {
+            self.flash_message("Not connected, try again later");
+        }
     }
 }

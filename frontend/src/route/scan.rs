@@ -22,10 +22,15 @@ pub struct Props {
     pub member_state: Option<MemberState>,
     pub streak_state: Option<StreakState>,
     pub scan_session_state: Option<ScanSessionState>,
+    // TODO: this introduces coupling to the app crate,
+    // maybe the other way around is better. As the app
+    // crate already knows.
+    pub on_skip_scan: Callback<Msg>,
 }
 
 pub enum Msg {
     NotWorking,
+    SkipCurrentScan,
 }
 
 impl Component for Scan {
@@ -44,9 +49,13 @@ impl Component for Scan {
         match msg {
             Msg::NotWorking => {
                 self.not_working = true;
+                true
+            }
+            Msg::SkipCurrentScan => {
+                self.props.on_skip_scan.emit(Msg::SkipCurrentScan);
+                false
             }
         }
-        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -96,7 +105,7 @@ impl Component for Scan {
         // for the scan, but the session will be continued.
         let on_not_working = self.link.callback(|_| Msg::NotWorking);
 
-        let on_skip = self.link.callback(|_| Msg::NotWorking);
+        let on_skip = self.link.callback(|_| Msg::SkipCurrentScan);
 
         html! {
         <div id="scan">
@@ -129,12 +138,12 @@ impl Component for Scan {
             <div class="notworking">
             {
                 if !self.not_working {
-                    html! { <a href="#" onclick={ on_not_working }>{ "Not working?" }</a> }
+                    html! { <a href="#" onclick=on_not_working>{ "Not working?" }</a> }
                 } else {
                     html! {
                         <>
-                        <a href="#" class="skip" onclick={ on_skip }>{ "Skip" }</a>
-                        <p>{"Sometimes something goes wrong, no worry, just click Skip and continue earning. Please note that each skip is not rewarded with UBUCKS"}</p>
+                        <a href="#" class="skip" onclick=on_skip>{ "Skip" }</a>
+                        <p>{"Sometimes a scan does not take, no worry, just click Skip and continue earning. Please note that each skip is not rewarded with UBUCKS"}</p>
                         </>
                     }
                 }

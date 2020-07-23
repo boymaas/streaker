@@ -979,6 +979,7 @@ body {
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.5s ease-in;
+  background: orange;
 }
 #scan .notworking a.skip:hover {
   background-color: yellow;

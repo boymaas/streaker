@@ -43,6 +43,11 @@
     }
 }
 
+@mixin orange-button {
+    @include green-button;
+    background: orange;
+}
+
 
 .checkin-button {
     @include big-green-button();

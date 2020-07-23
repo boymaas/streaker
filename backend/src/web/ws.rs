@@ -166,5 +166,13 @@ async fn handle_disconnect(sessions: &Sessions, token_data: &TokenData<Claims>) 
 }
 
 async fn handle_request(sessions: &Sessions, token_data: &TokenData<Claims>, request: WsRequest) {
-    match request {}
+    match request {
+        // member requested to skip the current scan, this entails
+        // the process of registering the scan as done, but not
+        // rewarding the user, and ofcourse sending a response back
+        // over the new scan_session_state
+        WsRequest::SkipCurrentScan(anode) => {
+            log::info!("Member requested to skip scan {}", anode);
+        }
+    }
 }

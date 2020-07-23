@@ -6,10 +6,13 @@ pub use crate::streak_logic::StreakState;
 
 type VisitorId = String;
 type Token = String;
+type AccessNodeLabel = String;
 
 /// This type is used as a request which sent to websocket connection.
 #[derive(Serialize, Deserialize, Debug)]
-pub enum WsRequest {}
+pub enum WsRequest {
+    SkipCurrentScan(AccessNodeLabel),
+}
 
 // Member state
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
