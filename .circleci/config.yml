@@ -129,11 +129,17 @@ jobs:
          # as an ENV var
          envsubst < kube/deployment.yml | kubectl apply -f -
 
+# TODO: to save costs we only build on production
+# which is a trigger for me to do a publish.
+# this makes the deploy filters redundant, leaving them in.
 workflows:
   version: 2
   aero_deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: production
       - deploy_backend:
           requires:
             - build
