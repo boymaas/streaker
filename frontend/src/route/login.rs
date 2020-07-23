@@ -30,7 +30,15 @@ impl Component for Login {
 
     fn view(&self) -> Html {
         let suuid = &token::get_token_suuid().unwrap().to_string();
+
+        // TODO: this is hardcoded, should be an compile time
+        //       env var. Need to implement this in CI as well
+        #[cfg(not(debug_assertions))]
+        let anode_url = format!("https://access-node.opesdentist.com");
+
+        #[cfg(debug_assertions)]
         let anode_url = format!("https://{}.monetashi.io", "opesdentist");
+
         let checkin_url =
             qrcode::generate_url("Streaker Login", &anode_url, &format!("login:{}", suuid));
 
