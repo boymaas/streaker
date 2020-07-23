@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Install all the deps
 RUN apt-get update && \
-    apt-get install -y jq  && \
+    apt-get install -y jq curl && \
     rm -rf /var/lib/apt/lists/*
 
 # post_attribution prints every event received to STDERR as other scripts

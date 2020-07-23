@@ -11,7 +11,7 @@ cat -u - | stdbuf -i0 -o0 tee /dev/stderr | grep --line-buffered 'ATTRIBUTION RE
 while read -r claim; do
    attribution="{\"access_node_name\": \"$access_node_name\", \"claim\": $claim }"
    echo  "POST attribution $attribution => $end_point"
-   echo curl --header "Content-Type: application/json" \
+   curl --header "Content-Type: application/json" \
 	--request POST \
 	--data "$attribution" \
 	$end_point
