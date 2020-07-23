@@ -953,6 +953,42 @@ body {
 #scan .stats .remaining {
   margin-top: 10px;
 }
+#scan .notworking {
+  margin: -20px auto 30px auto;
+  text-align: center;
+  width: 375px;
+}
+@media screen and (max-width: 900px) {
+  #scan .notworking {
+    margin-top: 20px;
+  }
+}
+#scan .notworking a {
+  color: white;
+}
+#scan .notworking a.skip {
+  background: #BBFF00;
+  border-radius: 55px;
+  font-size: 24.4px;
+  font-weight: 500;
+  color: #230660;
+  letter-spacing: 3.65px;
+  text-align: center;
+  padding: 8px 40px;
+  border: solid 2px #250561;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.5s ease-in;
+}
+#scan .notworking a.skip:hover {
+  background-color: yellow;
+  border: solid 2px white;
+}
+#scan .notworking p {
+  font-size: 14px;
+  line-height: 2em;
+  margin-top: 40px;
+}
 #scan.completed .earned .amount {
   font-weight: 500;
   font-size: 32px;

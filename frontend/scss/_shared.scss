@@ -21,6 +21,28 @@
     }
 }
 
+@mixin green-button {
+    background: $green;
+    border-radius: 55px;
+    font-size: 24.4px;
+    font-weight: 500;
+    color: #230660;
+    letter-spacing: 3.65px;
+    text-align: center;
+    padding: 8px 40px;
+    border: solid 2px $background;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition: background-color 0.5s ease-in;
+
+    &:hover {
+        background-color: yellow;
+        border: solid 2px white;
+    }
+}
+
 
 .checkin-button {
     @include big-green-button();

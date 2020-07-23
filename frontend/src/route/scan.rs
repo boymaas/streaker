@@ -14,6 +14,7 @@ use crate::util::RawHTML;
 pub struct Scan {
     props: Props,
     link: ComponentLink<Self>,
+    not_working: bool,
 }
 
 #[derive(Properties, Clone, Debug)]
@@ -23,16 +24,29 @@ pub struct Props {
     pub scan_session_state: Option<ScanSessionState>,
 }
 
+pub enum Msg {
+    NotWorking,
+}
+
 impl Component for Scan {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, props }
+        Self {
+            link,
+            props,
+            not_working: false,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        false
+        match msg {
+            Msg::NotWorking => {
+                self.not_working = true;
+            }
+        }
+        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -77,6 +91,13 @@ impl Component for Scan {
             &format!("scantest@{}:{}", next_anode.label, suuid),
         );
 
+        // not working means this scan could not be performed for some reason,
+        // this is a way the user can skip this scan. He will not be rewarded
+        // for the scan, but the session will be continued.
+        let on_not_working = self.link.callback(|_| Msg::NotWorking);
+
+        let on_skip = self.link.callback(|_| Msg::NotWorking);
+
         html! {
         <div id="scan">
             <div class="earned">
@@ -105,25 +126,41 @@ impl Component for Scan {
                 }
             }
 
-
-
-            <div class="stats grid halves">
-                <div class="col scansleft">
-                  <span class="amount">
-                     { scan_session_s.total - scan_session_s.count }
-                  </span>
-                  <span class="subtext">{ "SCANS LEFT" }</span>
-                </div>
-
-                <div class="col remaining">
-                  <span class="amount">
-                    <span>{ "$" }</span>
-                     { format!("{:.4}", streak_s.mining_ratio * ( scan_session_s.total - scan_session_s.count) as f64)  }
-                  </span>
-                  <span class="subtext">{ "REMAINING TODAY" }</span>
-                </div>
+            <div class="notworking">
+            {
+                if !self.not_working {
+                    html! { <a href="#" onclick={ on_not_working }>{ "Not working?" }</a> }
+                } else {
+                    html! {
+                        <>
+                        <a href="#" class="skip" onclick={ on_skip }>{ "Skip" }</a>
+                        <p>{"Sometimes something goes wrong, no worry, just click Skip and continue earning. Please note that each skip is not rewarded with UBUCKS"}</p>
+                        </>
+                    }
+                }
+            }
             </div>
 
+
+            { if !self.not_working { html! {
+
+                  <div class="stats grid halves">
+                      <div class="col scansleft">
+                      <span class="amount">
+                      { scan_session_s.total - scan_session_s.count }
+                  </span>
+                      <span class="subtext">{ "SCANS LEFT" }</span>
+                      </div>
+
+                      <div class="col remaining">
+                      <span class="amount">
+                      <span>{ "$" }</span>
+                      { format!("{:.4}", streak_s.mining_ratio * ( scan_session_s.total - scan_session_s.count) as f64)  }
+                  </span>
+                      <span class="subtext">{ "REMAINING TODAY" }</span>
+                      </div>
+                      </div>
+              }} else { html! {}}}
         </div>
 
         }

@@ -85,6 +85,25 @@
 
     }
 
+    // Not working
+    .notworking {
+        margin: -20px auto 30px auto;
+
+        @media screen and (max-width: 900px) {
+            margin-top: 20px;
+        }
+        text-align: center;
+        width: 375px;
+        a {
+            color: white;
+
+            &.skip {
+                @include green-button;
+            }
+        }
+        p {font-size: 14px; line-height: 2em; margin-top: 40px;}
+    }
+
     // Completed
     &.completed {
         .earned {
