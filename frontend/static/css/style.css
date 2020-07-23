@@ -479,6 +479,9 @@ body {
   min-height: 600px;
 }
 
+#header {
+  padding-top: 20px;
+}
 @media screen and (max-width: 900px) {
   #header #logo {
     width: 100px;
