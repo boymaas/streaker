@@ -73,12 +73,9 @@ impl StreakerApp {
             .and(warp::ws())
             .and(self.route_sessions_any())
             .and(self.route_db_pool_any())
-            .and(warp::any().map(timefn))
-            .map(
-                |token: String, ws: warp::ws::Ws, sessions, pool, time: DateTime<Utc>| {
-                    ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket, time))
-                },
-            )
+            .map(move |token: String, ws: warp::ws::Ws, sessions, pool| {
+                ws.on_upgrade(move |socket| ws::handle(sessions, pool, token, socket, timefn))
+            })
     }
 
     // https://github.com/seanmonstar/warp/issues/53#issuecomment-412367454

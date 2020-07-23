@@ -8,7 +8,7 @@ use tokio::sync::{mpsc, RwLock};
 use uuid::Uuid;
 use warp::ws::Message;
 
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 
 use streaker_common::streak_logic::StreakLogic;
 use streaker_common::ws::{WsRequest, WsResponse};
@@ -17,6 +17,8 @@ use crate::jwt::{self, Claims, TokenData};
 use crate::model::Member;
 use crate::model::Scan;
 use crate::model::ScanSession;
+
+use anyhow::Result;
 
 pub type WsChannel = mpsc::UnboundedSender<Result<Message, warp::Error>>;
 pub type VisitorId = String;
@@ -34,8 +36,10 @@ pub async fn handle(
     pool: PgPool,
     token: String,
     socket: warp::ws::WebSocket,
-    time: DateTime<Utc>,
+    timefn: fn() -> DateTime<Utc>,
 ) {
+    let time = timefn();
+
     // when we already have another tab open, we can send a message to the
     // previous open tab to close that one.
 
@@ -142,7 +146,22 @@ pub async fn handle(
             Ok(msg) => {
                 if let Ok(request) = serde_json::from_str::<WsRequest>(msg) {
                     // do something with message
-                    handle_request(&sessions, &token_data, request).await;
+
+                    // get the time using our timefn, since this can be an
+                    // async process, the time could have moved forward in time. As such
+                    // we cannot use the static time on connect. Every msg we do
+                    // a new time.
+                    let time = timefn();
+                    let mut conn = pool.acquire().await.expect("Problem acquiring connection");
+                    handle_request(
+                        &mut conn,
+                        tx.clone(),
+                        &sessions,
+                        &token_data,
+                        &request,
+                        &time,
+                    )
+                    .await;
                 } else {
                     log::error!("Problem deserializing WebRequest")
                 };
@@ -165,14 +184,44 @@ async fn handle_disconnect(sessions: &Sessions, token_data: &TokenData<Claims>) 
     sessions.write().await.remove(&token_data.claims.suuid);
 }
 
-async fn handle_request(sessions: &Sessions, token_data: &TokenData<Claims>, request: WsRequest) {
+async fn handle_request(
+    conn: &mut PgConnection,
+    ws_channel: WsChannel,
+    sessions: &Sessions,
+    token_data: &TokenData<Claims>,
+    request: &WsRequest,
+    time: &DateTime<Utc>,
+) -> Result<()> {
     match request {
         // member requested to skip the current scan, this entails
         // the process of registering the scan as done, but not
         // rewarding the user, and ofcourse sending a response back
         // over the new scan_session_state
-        WsRequest::SkipCurrentScan(anode) => {
-            log::info!("Member requested to skip scan {}", anode);
+        WsRequest::SkipCurrentScan(access_node_name) => {
+            log::info!("Member requested to skip scan {}", access_node_name);
+
+            if let Some(visitorid) = &token_data.claims.visitorid {
+                // TODO: link them together &attr.claim.visitorid
+                // Find our current scan sesssion, this could be a new one
+                let scan_session = ScanSession::current(conn, visitorid, time).await?;
+
+                // and register our scan, effectively setting last scan to now
+                // TODO: register the fact this scan was skipped, we can use this
+                // to test if access nodes have problems.
+                // TODO: make integration test for this function
+                scan_session
+                    .register_scan(conn, &access_node_name, time)
+                    .await?;
+
+                let scan_session_state = scan_session.scan_session_state(conn, time).await?;
+                send_response(
+                    &ws_channel,
+                    &WsResponse::ScanSessionState(scan_session_state),
+                );
+            } else {
+                log::error!("Security incident, member tried to skip session unauthorised??");
+            }
+            Ok(())
         }
     }
 }
