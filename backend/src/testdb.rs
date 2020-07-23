@@ -1,7 +1,7 @@
-use crate::migrate;
 use dotenv;
 use sqlx::postgres::PgPool;
 use sqlx::{Connect, Executor, PgConnection};
+use streaker_migrate as migrate;
 use url::Url;
 
 use crate::dbstate;

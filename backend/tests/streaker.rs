@@ -169,7 +169,8 @@ async fn test_correct_registration_of_streaks() -> Result<()> {
 
     log::info!("First Login");
     let visitorid = "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP";
-    let mut client = prepare_test_client_and_login("opesdentist", visitorid, now).await;
+    let mut client: StreakerClient =
+        prepare_test_client_and_login("opesdentist", visitorid, now).await;
 
     // Start with a 0 streak/bucket and 0 streak count
     assert_member_state(&client, 0, 0, 0.0);
@@ -337,7 +338,8 @@ async fn test_double_scans_blocked() -> Result<()> {
 
     log::info!("First Login");
     let visitorid = "IhG87MWGA1cWxcT5e6AlX1xqYeP0k1UP";
-    let mut client = prepare_test_client_and_login("opesdentist", visitorid, now).await;
+    let mut client: StreakerClient =
+        prepare_test_client_and_login("opesdentist", visitorid, now).await;
 
     log::info!("First scan");
     // now the client scans today, one scan

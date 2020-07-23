@@ -13,7 +13,7 @@ pub mod web;
 // #[cfg(test)]
 pub use streaker_migrate as migrate;
 
-#[cfg(test)]
+//#[cfg(test)]
 pub mod streaker_client;
-#[cfg(test)]
+//#[cfg(test)]
 pub mod testdb;

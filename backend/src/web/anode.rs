@@ -41,10 +41,26 @@ mod custom_date_parser {
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        // %e could be %d
-        Utc.datetime_from_str(&s, "%a %b %e %H:%M:%S GMT %Y")
-            .map_err(serde::de::Error::custom)
+        // This is some arcane format, we don't really care
+        // about the date. I did something like:
+        //
+        // let s = String::deserialize(deserializer)?;
+        // // %e could be %d
+        // Utc.datetime_from_str(&s, "%a %b %e %H:%M:%S GMT %Y")
+        //     .map_err(serde::de::Error::custom)
+        //
+        // But it gave troubles on the timezone stuff. Just
+        // returning now for now. To fix this we would require
+        // substituting this, and this will give even more troubles.
+        //
+        // We are not using this date for anything, so I am just
+        // returning Now
+        //
+
+        // need to call this method to progress the
+        // deserializer
+        let _ = String::deserialize(deserializer)?;
+        Ok(Utc::now())
     }
 }
 

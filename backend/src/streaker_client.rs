@@ -142,6 +142,10 @@ impl StreakerClient {
             .reply(&self.streaker_app.routes(self.timefn))
             .await;
 
+        if res.status() != 200 {
+            dbg!(&res);
+        }
+
         assert_eq!(res.status(), 200);
 
         self.ws_recv_attribution().await;
