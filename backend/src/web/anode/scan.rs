@@ -104,7 +104,7 @@ async fn attribution_scan_inner(
 
         // after we registerd our scan, we can reward our member with
         // UBUCKS in ration with the mining ratio
-        member.reward(conn, streak_state.mining_ratio).await;
+        member.reward(conn, streak_state.mining_ratio).await?;
 
         // now we have updated our member state. If we haven't updated
         // it we just send the state as is.
