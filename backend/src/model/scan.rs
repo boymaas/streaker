@@ -8,6 +8,7 @@ pub struct Scan {
     pub scansession: Uuid,
     pub anode: String,
     pub tstamp: DateTime<Utc>,
+    pub skipped: bool,
 }
 
 impl Scan {

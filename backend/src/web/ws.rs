@@ -210,7 +210,7 @@ async fn handle_request(
                 // to test if access nodes have problems.
                 // TODO: make integration test for this function
                 scan_session
-                    .register_scan(conn, &access_node_name, time)
+                    .register_scan(conn, &access_node_name, time, true)
                     .await?;
 
                 let scan_session_state = scan_session.scan_session_state(conn, time).await?;

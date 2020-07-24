@@ -99,7 +99,7 @@ async fn attribution_scan_inner(
 
         // and register our scan, effectively setting last scan to now
         scan_session
-            .register_scan(conn, &attr.access_node_name, time)
+            .register_scan(conn, &attr.access_node_name, time, false)
             .await?;
 
         // after we registerd our scan, we can reward our member with

@@ -30,13 +30,15 @@ impl ScanSession {
         pool: &mut PgConnection,
         anode: &str,
         time: &DateTime<Utc>,
+        skipped: bool,
     ) -> Result<Scan> {
         let scan: Scan = sqlx::query_as!(
             Scan,
-            "INSERT INTO scans (scansession,anode,tstamp) VALUES ( $1, $2, $3 ) returning *",
+            "INSERT INTO scans (scansession,anode,tstamp,skipped) VALUES ( $1, $2, $3, $4 ) returning *",
             self.uuid,
             anode,
-            *time
+            *time,
+            skipped
         )
         .fetch_one(pool)
         .await?;
@@ -84,7 +86,7 @@ impl ScanSession {
             .await?;
 
         let scans_performed = sqlx::query!(
-            "select count(*) as count from scans where scansession = $1",
+            "select count(*) as count from scans where scansession = $1 and skipped = false",
             scan_session.uuid
         )
         .fetch_one(&mut *pool)

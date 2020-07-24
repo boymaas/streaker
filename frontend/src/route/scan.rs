@@ -53,7 +53,8 @@ impl Component for Scan {
             }
             Msg::SkipCurrentScan => {
                 self.props.on_skip_scan.emit(Msg::SkipCurrentScan);
-                false
+                self.not_working = false;
+                true
             }
         }
     }
