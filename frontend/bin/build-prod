@@ -1,0 +1,7 @@
+#!/bin/bash
+
+STREAKER_API_ENDPOINT=https://api.opescash.com \
+STREAKER_WSS_ENDPOINT=wss://api.opescash.com \
+wasm-pack build --target web --out-name wasm --out-dir ./static --release
+
+

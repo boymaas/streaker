@@ -9,6 +9,10 @@ plugins:
       - production
     options:
       password: showme
+      ignorePatterns:
+        - "/*.wasm"
+        - "/wasm*"
+        - "/wasm.js"
   - name: webpage
     options:
       canonicalRedirects: true
