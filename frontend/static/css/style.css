@@ -498,7 +498,7 @@ body {
   display: block;
   width: 93px;
   height: 40px;
-  background: url("/img/logo.svg") no-repeat;
+  background: url("/img/logo.png") no-repeat;
 }
 #header #logo h1 span {
   display: none;

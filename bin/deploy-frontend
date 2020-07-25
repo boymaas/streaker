@@ -1,0 +1,9 @@
+#!/bin/bash -xe
+
+# first make a production build
+cd frontend
+bin/build-prod
+
+# then deploy to aerobatic
+cd static
+aero deploy

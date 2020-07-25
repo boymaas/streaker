@@ -1,6 +1,7 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use sqlx::postgres::PgConnection;
+use tokio::stream::StreamExt;
 use uuid::Uuid;
 
 use streaker_common::ws;
@@ -85,12 +86,26 @@ impl ScanSession {
             .fetch_one(&mut *pool)
             .await?;
 
-        let scans_performed = sqlx::query!(
-            "select count(*) as count from scans where scansession = $1 and skipped = false",
+        let mut scans_cursor = sqlx::query_as!(
+            Scan,
+            "select * from scans where scansession = $1",
             scan_session.uuid
         )
-        .fetch_one(&mut *pool)
-        .await?;
+        .fetch(&mut *pool);
+
+        // TODO: seems no easy way to get small resultset
+        // into a vector other than scanning the cursor.
+        let mut scans = vec![];
+        while let Some(scan) = scans_cursor.next().await {
+            scans.push(scan?);
+        }
+        // explicitly drop here, as we have no use for
+        // the cursor anymore
+        drop(scans_cursor);
+
+        // find out how many have been performed and skipped
+        let scans_performed = scans.iter().filter(|s| !s.skipped).count();
+        let scans_skipped = scans.iter().filter(|s| s.skipped).count();
 
         let next_anode: Option<AccessNode> = sqlx::query_as!(
             AccessNode,
@@ -105,7 +120,8 @@ impl ScanSession {
         // build up the scansession state
         let scan_session_state = ScanSessionState {
             uuid: scan_session.uuid,
-            count: scans_performed.count.unwrap() as u16,
+            count: scans_performed as u16,
+            skipped: scans_skipped as u16,
             total: total.count.unwrap() as u16,
             next_anode: next_anode.map(|anode| anode.into()),
             begin: scan_session.begin,

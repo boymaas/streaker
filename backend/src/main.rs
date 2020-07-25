@@ -16,6 +16,7 @@ async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     pretty_env_logger::init();
 
+    log::info!("Starting up streaker backend");
     let database_url = dotenv::var("DATABASE_URL")?;
 
     log::info!("Connecting to database: {}", database_url);

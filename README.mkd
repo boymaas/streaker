@@ -23,4 +23,30 @@ how to build and deploy the project.
 Frontend is deployed to aerobatic.com. A party specialised in single
 page app hosting.
 
+## Local deployment
+
+### Backend
+
+Deploy via `bin/deploy-backend`. Make sure you have the appropiate
+environment variables set. This will deploy to cluster without
+going through the CI process
+
+	export AWS_ACCESS_KEY_ID
+	export AWS_DEFAULT_REGION
+	export AWS_SECRET_ACCESS_KEY
+	export CORS_ORIGIN
+	export STREAKER_DATABASE_URL
+	export STREAKER_SECRET
+
+### Frontend
+
+Deploy via `bin/deploy-frontend`. Some compile time env vars 
+are set in the build-prod script.
+
+	STREAKER_API_ENDPOINT=https://api.opescash.com \
+	STREAKER_WSS_ENDPOINT=wss://api.opescash.com \
+
+These are necessary to let the websocket and api fetch from teh 
+correct endpoints.
+
 

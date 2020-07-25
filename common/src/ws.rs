@@ -36,6 +36,7 @@ pub struct AccessNode {
 pub struct ScanSessionState {
     pub uuid: Uuid,
     pub count: u16,
+    pub skipped: u16,
     pub total: u16,
     pub next_anode: Option<AccessNode>,
     pub begin: DateTime<Utc>,
@@ -56,6 +57,7 @@ impl Default for ScanSessionState {
         ScanSessionState {
             uuid: Uuid::nil(),
             count: 0,
+            skipped: 0,
             total: 0,
             next_anode: None,
             begin: Utc::now().date().and_hms(0, 0, 0),
